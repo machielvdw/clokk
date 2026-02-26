@@ -142,7 +142,7 @@ Every JSON response uses the same envelope:
 Success:
 {
   "ok": true,
-  "data": { ... },
+  "data": { },
   "message": "Timer started: API integration [acme]"
 }
 
