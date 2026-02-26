@@ -55,13 +55,13 @@
 
 **Depends on:** Phase 0 complete.
 
-- [ ] **1.1 — Drizzle schema** `§7`
+- [x] **1.1 — Drizzle schema** `§7`
   - `src/data/schema.ts` — `projects` and `entries` tables with all columns, constraints, defaults, FK (`entries.project_id` → `projects.id` ON DELETE SET NULL)
   - Indexes: `idx_entries_start`, `idx_entries_project`, `idx_entries_end`, `idx_projects_name`
   - Generate initial migration with `drizzle-kit generate`
   - `tests/data/schema.test.ts` — verify schema with in-memory DB insert/select round-trip
 
-- [ ] **1.2 — SQLite repository implementation** `§3.3, §3.4, §7`
+- [x] **1.2 — SQLite repository implementation** `§3.3, §3.4, §7`
   - `src/data/sqlite.ts` — `SqliteRepository` class implementing `Repository`
   - Key behaviors: `getProject` resolves name vs ID by `prj_` prefix, tags serialize as JSON, `duration_seconds` computed on row mapping, `deleteProject` checks for referencing entries
   - `tests/data/sqlite.test.ts` — comprehensive integration suite:
@@ -70,7 +70,7 @@
     - Project CRUD, unique name constraint, archive, force-delete cascading SET NULL
     - `duration_seconds` computation, tag round-trip, `updated_at` mutation
 
-- [ ] **1.3 — Repository factory & config system** `§3.5, §8`
+- [x] **1.3 — Repository factory & config system** `§3.5, §8`
   - `src/data/factory.ts` — `createRepository(config): Repository`, creates DB, runs migrations, enables WAL + foreign keys
   - `src/config.ts` — `ClokkConfig` type, `loadConfig()`, `saveConfig()`, `getConfigDir()`, `getDbPath()`, `ensureConfigDir()`
   - Directory initialization: creates `~/.clokk/` (or `$CLOKK_DIR`) with default `config.json` on first run
