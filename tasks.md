@@ -85,7 +85,7 @@
 
 **Depends on:** Phase 1 complete. *(All tasks in this phase can run in parallel.)*
 
-- [ ] **2.1 — Timer functions** `§6.3 Timer Lifecycle`
+- [x] **2.1 — Timer functions** `§6.3 Timer Lifecycle`
   - `src/core/timer.ts` — `startTimer`, `stopTimer`, `getStatus`, `resumeTimer`, `switchTimer`, `cancelTimer`
   - `startTimer`: check no running timer, verify project exists if given, generate ID, create entry with `end_time: null`
   - `stopTimer`: get running entry, set `end_time`, optionally update description/tags
@@ -95,24 +95,24 @@
   - `cancelTimer`: delete running entry
   - `tests/core/timer.test.ts` — start/stop/status/resume/switch/cancel success paths + all error conditions (already running, no timer, project not found)
 
-- [ ] **2.2 — Entry management functions** `§6.3 Entry Management`
+- [x] **2.2 — Entry management functions** `§6.3 Entry Management`
   - `src/core/entries.ts` — `logEntry`, `editEntry`, `deleteEntry`, `listEntries`
   - `logEntry`: validate `from` required, `to`/`duration` mutually exclusive, compute `end_time` from duration if needed, verify `end > start`
   - `editEntry`: verify entry exists, validate time range if changed, verify project if changed
   - `tests/core/entries.test.ts` — log with `to` vs `duration`, mutual exclusion error, edit fields, delete, list with filters + pagination
 
-- [ ] **2.3 — Project management functions** `§6.3 Project Management`
+- [x] **2.3 — Project management functions** `§6.3 Project Management`
   - `src/core/projects.ts` — `createProject`, `editProject`, `archiveProject`, `deleteProject`, `listProjects`
   - Name uniqueness check on create and rename
   - `tests/core/projects.test.ts` — CRUD, duplicate name errors, archive flag, force-delete, list with/without archived
 
-- [ ] **2.4 — Report & export functions** `§6.3 Reporting`
+- [x] **2.4 — Report & export functions** `§6.3 Reporting`
   - `src/core/reports.ts` — `generateReport`, `exportEntries`
   - `generateReport`: group entries by project/tag/day/week, sum durations, compute billable amounts from project rates
   - `exportEntries`: format as CSV or JSON string
   - `tests/core/reports.test.ts` — grouping correctness, billable calculation, empty results, CSV/JSON format validation
 
-- [ ] **2.5 — Config functions** `§6.3 Configuration, §8`
+- [x] **2.5 — Config functions** `§6.3 Configuration, §8`
   - `src/core/config.ts` — `showConfig`, `getConfigValue`, `setConfigValue`
   - Validate key existence (`ConfigKeyUnknownError`) and value types (`ConfigValueInvalidError`)
   - `tests/core/config.test.ts` — get/set valid keys, unknown key error, invalid value type error
