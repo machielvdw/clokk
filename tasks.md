@@ -8,12 +8,12 @@ Progress is tracked with checkboxes. Each phase is independently testable.
 
 Set up the Bun project, install dependencies, and create the directory structure.
 
-- [ ] Initialize Bun project (`bun init`), configure `package.json` (name, bin, scripts)
-- [ ] Configure `tsconfig.json` (strict mode, paths)
-- [ ] Install dependencies: `citty`, `drizzle-orm`, `consola`, `nanoid`
-- [ ] Install dev dependencies: `drizzle-kit`, `@types/bun`
-- [ ] Create directory structure per spec (src/core, src/data, src/cli/commands, tests)
-- [ ] Add a basic `src/cli/index.ts` entry point that prints version
+- [x] Initialize Bun project (`bun init`), configure `package.json` (name, bin, scripts)
+- [x] Configure `tsconfig.json` (strict mode, paths)
+- [x] Install dependencies: `citty`, `drizzle-orm`, `consola`
+- [x] Install dev dependencies: `drizzle-kit`, `@types/bun`
+- [x] Create directory structure per spec (src/core, src/data, src/cli/commands, tests)
+- [x] Add `src/cli/index.ts` entry point with citty command router and all command stubs
 
 **How to test:** `bun run src/cli/index.ts --version` prints the version.
 
