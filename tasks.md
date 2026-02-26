@@ -12,7 +12,7 @@
 
 ### Setup
 
-- [ ] **0.1 — Project configuration files** `§2, §2.1, §4`
+- [x] **0.1 — Project configuration files** `§2, §2.1, §4`
   - `package.json` — name `clokk`, type `module`, bin field, pinned deps (`citty`, `consola`, `drizzle-orm`, `dayjs`, `nanoid`), dev deps (`typescript`, `@types/bun`, `drizzle-kit`), scripts (`test`, `build`, `db:generate`, `db:migrate`)
   - `tsconfig.json` — strict, ESNext, bundler module resolution, path alias `@/` → `src/`
   - `drizzle.config.ts` — schema `./src/data/schema.ts`, out `./drizzle`, dialect `sqlite`
@@ -20,30 +20,30 @@
 
 ### Shared Utilities *(parallel after 0.1)*
 
-- [ ] **0.2 — ID generation** `§13`
+- [x] **0.2 — ID generation** `§13`
   - `src/utils/id.ts` — `generateId(prefix)`, `generateEntryId()`, `generateProjectId()`, `isEntryId()`, `isProjectId()`
   - `tests/utils/id.test.ts` — format validation, uniqueness, prefix correctness
 
-- [ ] **0.3 — Duration parsing & formatting** `§11`
+- [x] **0.3 — Duration parsing & formatting** `§11`
   - `src/utils/duration.ts` — `parseDuration(input): number` (seconds), `formatDuration(seconds): string`
   - `tests/utils/duration.test.ts` — all input formats from spec table, edge cases (0, negative, invalid)
 
-- [ ] **0.4 — Date parsing & formatting** `§12`
+- [x] **0.4 — Date parsing & formatting** `§12`
   - `src/utils/date.ts` — `parseDate(input): string` (ISO 8601 UTC), `formatDate(iso, format?): string`
   - Uses `dayjs` + custom relative parser (~50 lines of pattern matching)
   - `tests/utils/date.test.ts` — all input formats from spec table, inject `now` for determinism
 
-- [ ] **0.5 — Typed error classes** `§5.4, §10`
+- [x] **0.5 — Typed error classes** `§5.4, §10`
   - `src/core/errors.ts` — base `ClokkError` (code, message, suggestions, context, exitCode) + subclass per error code: `TimerAlreadyRunningError`, `NoTimerRunningError`, `EntryNotFoundError`, `ProjectNotFoundError`, `ProjectAlreadyExistsError`, `ProjectHasEntriesError`, `ValidationError`, `ConflictError`, `NoEntriesFoundError`, `ConfigKeyUnknownError`, `ConfigValueInvalidError`, `DatabaseError`
   - `tests/core/errors.test.ts` — correct codes, exitCodes, instanceof, suggestions/context population
 
 ### Types & Interfaces *(after 0.5, parallel with each other)*
 
-- [ ] **0.6 — Core type definitions** `§3.1, §3.4, §7`
+- [x] **0.6 — Core type definitions** `§3.1, §3.4, §7`
   - `src/core/types.ts` — `Entry`, `Project`, `NewEntry`, `EntryUpdates`, `EntryFilters`, `NewProject`, `ProjectUpdates`, `ProjectFilters`, `ReportFilters`, `StartTimerInput`, `StopTimerInput`, `SwitchTimerInput`, `LogEntryInput`, etc.
   - `duration_seconds` is on the `Entry` type (computed, not stored) — null when timer is running
 
-- [ ] **0.7 — Repository interface** `§3.4, §3.5`
+- [x] **0.7 — Repository interface** `§3.4, §3.5`
   - `src/data/repository.ts` — `Repository` interface with all methods from spec §3.4
   - All methods async, imports types from `src/core/types.ts`
 
