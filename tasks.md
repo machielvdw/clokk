@@ -193,21 +193,101 @@
 
 ---
 
-## Future Work *(not part of initial build)*
+## Phase 5: CI/CD & Distribution
 
-- [ ] **F.1 — Turso repository adapter** `§15`
-  - `src/data/turso.ts` — `TursoRepository` with libsql embedded replicas
-  - `clokk sync` command, `clokk auth login` flow
+**Goal:** Automated CI pipeline on every push, release workflow that produces multi-platform binaries, npm package, and Homebrew formula on tag.
 
-- [ ] **F.2 — TUI interface** `§16`
-  - `src/tui/` — Ink-based terminal UI consuming core layer
-  - Live timer display, interactive selection, keyboard shortcuts
+**Depends on:** Phase 4 complete. *(F.3.1 can start immediately; F.3.2–F.3.3 and F.4 after F.3.1.)*
 
-- [ ] **F.3 — CI/CD pipeline** `§17`
-  - GitHub Actions: lint (`tsc --noEmit`) → test (`bun test`) → build (`bun build --compile`) → release (multi-platform binaries, npm publish)
+- [ ] **F.3.1 — CI workflow** `§17`
+  - `.github/workflows/ci.yml` — triggered on push and PR
+  - Steps: `oven-sh/setup-bun@v2` → `bun install` → `bun tsc --noEmit` → `bun test` → `bun build --compile` (smoke test)
+  - Validates that every push has no type errors, passes tests, and compiles
 
-- [ ] **F.4 — Distribution** `§14`
-  - Homebrew tap, npm publish config, GitHub Release automation
+- [ ] **F.3.2 — Release workflow** `§14, §17`
+  - `.github/workflows/release.yml` — triggered on `v*` tag push
+  - Matrix build: compile for 5 targets (`bun-darwin-x64`, `bun-darwin-arm64`, `bun-linux-x64`, `bun-linux-arm64`, `bun-windows-x64`) using platform-specific runners
+  - Upload artifacts → create GitHub Release via `softprops/action-gh-release@v1` with all binaries + `checksums.txt` (SHA256)
+
+- [ ] **F.3.3 — npm publish step** `§14`
+  - Add npm publish to release workflow: `bun publish --access public`
+  - Configure npm OIDC trusted publishing for provenance attestation
+  - Add `files` and `publishConfig` fields to `package.json`
+
+- [ ] **F.4.1 — Homebrew tap** `§14`
+  - Create `homebrew-tap` repository with `Formula/clokk.rb`
+  - Formula uses `on_macos`/`on_linux` + `on_arm`/`on_intel` blocks to select platform-specific binary from GitHub Releases
+  - SHA256 checksums from `checksums.txt`
+
+- [ ] **F.4.2 — Automated formula updates** `§14`
+  - Add step to release workflow that pushes updated formula (new version + checksums) to the `homebrew-tap` repository after each release
+
+- [ ] **F.4.3 — Install documentation**
+  - Update README with install instructions for all three channels (npm, binary, Homebrew)
+
+---
+
+## Phase 6: Accounts & Sync
+
+**Goal:** Cloud sync via Turso embedded replicas. Local-first — works offline, syncs when connected.
+
+**Depends on:** Phase 4 complete. *(Independent of Phase 5.)*
+
+- [ ] **F.1.1 — TursoRepository implementation** `§15`
+  - `bun add @libsql/client` (v0.17+)
+  - `src/data/turso.ts` — `TursoRepository` class implementing `Repository` interface
+  - Uses `@libsql/client` `createClient()` with `url` (local file), `syncUrl`, `authToken`, `syncInterval`
+  - Drizzle adapter: `drizzle-orm/libsql` instead of `drizzle-orm/bun-sqlite`
+  - Same `toEntry()`/`toProject()` mappers, same query patterns as `SqliteRepository`
+
+- [ ] **F.1.2 — Factory backend selection** `§15`
+  - Update `src/data/factory.ts`: if `config.turso.url` is set → `TursoRepository`; otherwise → `SqliteRepository`
+  - Ensure migrations run on first connect for both backends
+
+- [ ] **F.1.3 — `clokk sync` command** `§15`
+  - `src/cli/commands/sync.ts` — triggers manual `client.sync()`, returns sync status
+  - Fails gracefully with helpful message if Turso is not configured
+
+- [ ] **F.1.4 — `clokk auth` commands** `§15`
+  - `src/cli/commands/auth.ts` — subcommands: `login`, `logout`
+  - `login`: provisions Turso credentials (prompt for URL + token, or integrate with Turso CLI), writes to config, runs initial sync
+  - `logout`: removes Turso credentials from config, reverts to local-only mode
+
+- [ ] **F.1.5 — Turso tests** `§15, §17`
+  - `tests/data/turso.test.ts` — `TursoRepository` against in-memory libsql (same test patterns as `sqlite.test.ts`)
+  - `tests/cli/sync.test.ts` — integration tests for sync/auth commands
+  - Verify factory selects correct backend based on config
+
+---
+
+## Phase 7: TUI
+
+**Goal:** Terminal UI for interactive time tracking, built with OpenTUI, consuming the same core layer as the CLI.
+
+**Depends on:** Phase 4 complete. *(Independent of Phases 5 and 6.)*
+
+- [ ] **F.2.1 — TUI scaffold & entry point** `§16`
+  - `bun add @opentui/core @opentui/react react` (or `@opentui/solid solid-js`)
+  - Scaffold `src/tui/` directory: `index.ts`, `app.tsx`, `components/`, `hooks/`
+  - Register `clokk ui` command in CLI router
+  - Basic shell: full-screen app with status bar showing keyboard hints
+
+- [ ] **F.2.2 — Live timer view** `§16`
+  - `src/tui/components/timer.tsx` — displays running timer description + elapsed time
+  - `src/tui/hooks/use-timer.ts` — polls `getStatus()` every 200ms, manages timer state
+  - Keyboard shortcuts: `s` start (prompts for description), `x` stop, `w` switch, `r` resume, `c` cancel
+  - Handles "no timer running" state with prompt to start
+
+- [ ] **F.2.3 — Entry list & project picker** `§16`
+  - `src/tui/components/entry-list.tsx` — scrollable list of recent entries, `j`/`k` or arrow navigation, pagination
+  - `src/tui/components/project-picker.tsx` — overlay for project/tag selection with fuzzy filtering
+  - Split-pane layout: timer pane (top/left) + entry list pane (bottom/right) using Flexbox
+  - Focus management: Tab cycles between panes
+
+- [ ] **F.2.4 — Report visualization** `§16`
+  - `src/tui/components/report-view.tsx` — grouped time summaries as ASCII bar charts
+  - Date range navigation (day/week/month shortcuts)
+  - Toggle between report view and entry list via keyboard
 
 ---
 
@@ -239,6 +319,14 @@ Phase 4 ─ Integration
   4.1 Workflow Tests ─┐
   4.2 First-Run Test ─┼─→ (all parallel)
   4.3 Binary Build ───┘
+              │
+              ▼
+    ┌─────────┼─────────┐
+    │         │         │
+Phase 5    Phase 6   Phase 7
+CI/CD      Sync      TUI
+F.3→F.4    F.1.*     F.2.*
+(serial)  (parallel) (parallel)
 ```
 
 ## Task Summary
@@ -250,5 +338,8 @@ Phase 4 ─ Integration
 | Phase 2 | 5 | Business logic (timer, entries, projects, reports, config) |
 | Phase 3 | 8 | Output system, input parsing, CLI entry point, all commands |
 | Phase 4 | 3 | E2E tests, first-run, binary compilation |
-| **Total** | **26** | |
-| Future | 4 | Turso, TUI, CI/CD, distribution |
+| **Phases 0–4** | **26** | **Complete** |
+| Phase 5 | 6 | CI/CD pipeline, release workflow, npm, Homebrew |
+| Phase 6 | 5 | Turso adapter, factory update, sync/auth commands, tests |
+| Phase 7 | 4 | OpenTUI scaffold, live timer, entry list, reports |
+| **Phases 5–7** | **15** | |
