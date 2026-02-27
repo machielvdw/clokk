@@ -1,4 +1,10 @@
 import { defineCommand } from "citty";
+import { getContext } from "@/cli/context.ts";
+import { switchTimer } from "@/core/timer.ts";
+import { success } from "@/cli/output.ts";
+import { formatEntry } from "@/cli/format.ts";
+import { parseTags } from "@/cli/parse.ts";
+import type { SwitchResult } from "@/core/types.ts";
 
 export default defineCommand({
   meta: {
@@ -22,7 +28,16 @@ export default defineCommand({
       description: "Tags (comma-separated)",
     },
   },
-  run() {
-    throw new Error("Not implemented");
+  async run({ args }) {
+    const { repo } = getContext();
+    const result = await switchTimer(repo, {
+      description: args.description,
+      project: args.project,
+      tags: args.tags ? parseTags(args.tags) : undefined,
+    });
+    success(result, "Switched timers.", (d) => {
+      const r = d as SwitchResult;
+      return `Stopped:\n${formatEntry(r.stopped)}\n\nStarted:\n${formatEntry(r.started)}`;
+    });
   },
 });

@@ -1,4 +1,10 @@
 import { defineCommand } from "citty";
+import { getContext } from "@/cli/context.ts";
+import { editEntry } from "@/core/entries.ts";
+import { success } from "@/cli/output.ts";
+import { formatEntry } from "@/cli/format.ts";
+import { parseTags, parseDateArg } from "@/cli/parse.ts";
+import type { Entry } from "@/core/types.ts";
 
 export default defineCommand({
   meta: {
@@ -39,7 +45,16 @@ export default defineCommand({
       description: "Set billable status",
     },
   },
-  run() {
-    throw new Error("Not implemented");
+  async run({ args }) {
+    const { repo } = getContext();
+    const entry = await editEntry(repo, args.entryId, {
+      description: args.description,
+      project: args.project,
+      start_time: args.from ? parseDateArg(args.from) : undefined,
+      end_time: args.to ? parseDateArg(args.to) : undefined,
+      tags: args.tags ? parseTags(args.tags) : undefined,
+      billable: args.billable,
+    });
+    success(entry, "Entry updated.", (d) => formatEntry(d as Entry));
   },
 });

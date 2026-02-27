@@ -1,4 +1,10 @@
 import { defineCommand } from "citty";
+import { getContext } from "@/cli/context.ts";
+import { deleteEntry } from "@/core/entries.ts";
+import { confirmAction } from "@/cli/confirm.ts";
+import { success } from "@/cli/output.ts";
+import { formatEntry } from "@/cli/format.ts";
+import type { Entry } from "@/core/types.ts";
 
 export default defineCommand({
   meta: {
@@ -17,7 +23,16 @@ export default defineCommand({
       description: "Skip confirmation prompt",
     },
   },
-  run() {
-    throw new Error("Not implemented");
+  async run({ args }) {
+    const confirmed = await confirmAction(
+      `Delete entry ${args.entryId}?`,
+      { yes: args.yes },
+    );
+    if (!confirmed) {
+      process.exit(0);
+    }
+    const { repo } = getContext();
+    const entry = await deleteEntry(repo, args.entryId);
+    success(entry, "Entry deleted.", (d) => formatEntry(d as Entry));
   },
 });

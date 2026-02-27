@@ -1,4 +1,10 @@
 import { defineCommand } from "citty";
+import { getContext } from "@/cli/context.ts";
+import { cancelTimer } from "@/core/timer.ts";
+import { confirmAction } from "@/cli/confirm.ts";
+import { success } from "@/cli/output.ts";
+import { formatEntry } from "@/cli/format.ts";
+import type { Entry } from "@/core/types.ts";
 
 export default defineCommand({
   meta: {
@@ -12,7 +18,16 @@ export default defineCommand({
       description: "Skip confirmation prompt",
     },
   },
-  run() {
-    throw new Error("Not implemented");
+  async run({ args }) {
+    const confirmed = await confirmAction(
+      "Discard the running timer?",
+      { yes: args.yes },
+    );
+    if (!confirmed) {
+      process.exit(0);
+    }
+    const { repo } = getContext();
+    const entry = await cancelTimer(repo);
+    success(entry, "Timer cancelled.", (d) => formatEntry(d as Entry));
   },
 });

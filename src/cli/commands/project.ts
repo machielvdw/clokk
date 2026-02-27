@@ -1,4 +1,10 @@
 import { defineCommand } from "citty";
+import { getContext } from "@/cli/context.ts";
+import { createProject, listProjects, editProject, archiveProject, deleteProject } from "@/core/projects.ts";
+import { confirmAction } from "@/cli/confirm.ts";
+import { success } from "@/cli/output.ts";
+import { formatProject } from "@/cli/format.ts";
+import type { Project } from "@/core/types.ts";
 
 export default defineCommand({
   meta: {
@@ -33,8 +39,16 @@ export default defineCommand({
           description: "Hex color code",
         },
       },
-      run() {
-        throw new Error("Not implemented");
+      async run({ args }) {
+        const { repo } = getContext();
+        const project = await createProject(repo, {
+          name: args.name,
+          client: args.client,
+          rate: args.rate ? parseFloat(args.rate) : undefined,
+          currency: args.currency,
+          color: args.color,
+        });
+        success(project, "Project created.", (d) => formatProject(d as Project));
       },
     }),
     list: defineCommand({
@@ -45,8 +59,16 @@ export default defineCommand({
           description: "Include archived projects",
         },
       },
-      run() {
-        throw new Error("Not implemented");
+      async run({ args }) {
+        const { repo } = getContext();
+        const projects = await listProjects(repo, {
+          include_archived: args.archived,
+        });
+        success(projects, `${projects.length} project(s).`, (d) => {
+          const ps = d as Project[];
+          if (ps.length === 0) return "  No projects found.";
+          return ps.map((p) => formatProject(p)).join("\n\n");
+        });
       },
     }),
     edit: defineCommand({
@@ -78,8 +100,16 @@ export default defineCommand({
           description: "New hex color code",
         },
       },
-      run() {
-        throw new Error("Not implemented");
+      async run({ args }) {
+        const { repo } = getContext();
+        const project = await editProject(repo, args.nameOrId, {
+          name: args.name,
+          client: args.client,
+          rate: args.rate ? parseFloat(args.rate) : undefined,
+          currency: args.currency,
+          color: args.color,
+        });
+        success(project, "Project updated.", (d) => formatProject(d as Project));
       },
     }),
     archive: defineCommand({
@@ -91,8 +121,10 @@ export default defineCommand({
           required: true,
         },
       },
-      run() {
-        throw new Error("Not implemented");
+      async run({ args }) {
+        const { repo } = getContext();
+        const project = await archiveProject(repo, args.nameOrId);
+        success(project, "Project archived.", (d) => formatProject(d as Project));
       },
     }),
     delete: defineCommand({
@@ -113,8 +145,19 @@ export default defineCommand({
           description: "Skip confirmation prompt",
         },
       },
-      run() {
-        throw new Error("Not implemented");
+      async run({ args }) {
+        const confirmed = await confirmAction(
+          `Delete project "${args.nameOrId}"?`,
+          { yes: args.yes },
+        );
+        if (!confirmed) {
+          process.exit(0);
+        }
+        const { repo } = getContext();
+        const project = await deleteProject(repo, args.nameOrId, {
+          force: args.force,
+        });
+        success(project, "Project deleted.", (d) => formatProject(d as Project));
       },
     }),
   },

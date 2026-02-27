@@ -1,4 +1,9 @@
 import { defineCommand } from "citty";
+import { getContext } from "@/cli/context.ts";
+import { showConfig, getConfigValue, setConfigValue } from "@/core/config.ts";
+import { saveConfig } from "@/config.ts";
+import { success } from "@/cli/output.ts";
+import type { ClokkConfig } from "@/config.ts";
 
 export default defineCommand({
   meta: {
@@ -10,8 +15,12 @@ export default defineCommand({
     show: defineCommand({
       meta: { name: "show", description: "Show all configuration values" },
       args: {},
-      run() {
-        throw new Error("Not implemented");
+      async run() {
+        const { config } = getContext();
+        const result = showConfig(config);
+        success(result, "Configuration:", (d) =>
+          JSON.stringify(d as ClokkConfig, null, 2),
+        );
       },
     }),
     get: defineCommand({
@@ -23,8 +32,13 @@ export default defineCommand({
           required: true,
         },
       },
-      run() {
-        throw new Error("Not implemented");
+      async run({ args }) {
+        const { config } = getContext();
+        const result = getConfigValue(config, args.key);
+        success(result, `${result.key} = ${JSON.stringify(result.value)}`, (d) => {
+          const r = d as { key: string; value: unknown };
+          return `${r.key} = ${JSON.stringify(r.value)}`;
+        });
       },
     }),
     set: defineCommand({
@@ -41,9 +55,24 @@ export default defineCommand({
           required: true,
         },
       },
-      run() {
-        throw new Error("Not implemented");
+      async run({ args }) {
+        const { config } = getContext();
+        // Parse CLI string values into appropriate types
+        const parsed = parseConfigValue(args.value);
+        const result = setConfigValue(config, args.key, parsed);
+        saveConfig(result.config);
+        success(
+          { key: result.key, value: result.value },
+          `Set ${result.key} = ${JSON.stringify(result.value)}.`,
+        );
       },
     }),
   },
 });
+
+function parseConfigValue(raw: string): unknown {
+  if (raw === "true") return true;
+  if (raw === "false") return false;
+  if (raw === "null") return null;
+  return raw;
+}

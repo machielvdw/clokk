@@ -1,4 +1,10 @@
 import { defineCommand } from "citty";
+import { getContext } from "@/cli/context.ts";
+import { logEntry } from "@/core/entries.ts";
+import { success } from "@/cli/output.ts";
+import { formatEntry } from "@/cli/format.ts";
+import { parseTags, parseDateArg, parseDurationArg } from "@/cli/parse.ts";
+import type { Entry } from "@/core/types.ts";
 
 export default defineCommand({
   meta: {
@@ -39,7 +45,17 @@ export default defineCommand({
       description: "Mark as billable",
     },
   },
-  run() {
-    throw new Error("Not implemented");
+  async run({ args }) {
+    const { repo } = getContext();
+    const entry = await logEntry(repo, {
+      description: args.description as string | undefined,
+      project: args.project,
+      from: parseDateArg(args.from),
+      to: args.to ? parseDateArg(args.to) : undefined,
+      duration: args.duration ? parseDurationArg(args.duration) : undefined,
+      tags: args.tags ? parseTags(args.tags) : undefined,
+      billable: args.billable,
+    });
+    success(entry, "Entry logged.", (d) => formatEntry(d as Entry));
   },
 });

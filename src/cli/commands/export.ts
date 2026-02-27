@@ -1,4 +1,10 @@
+import { writeFileSync } from "node:fs";
 import { defineCommand } from "citty";
+import { getContext } from "@/cli/context.ts";
+import { exportEntries } from "@/core/reports.ts";
+import { success } from "@/cli/output.ts";
+import { resolveDateShortcuts } from "@/cli/parse.ts";
+import type { ExportFilters } from "@/core/types.ts";
 
 export default defineCommand({
   meta: {
@@ -38,7 +44,41 @@ export default defineCommand({
       description: "Export this month's entries",
     },
   },
-  run() {
-    throw new Error("Not implemented");
+  async run({ args }) {
+    const { repo, config } = getContext();
+    const dateRange = resolveDateShortcuts(args, {
+      weekStart: config.week_start,
+    });
+
+    // Resolve project name → ID
+    let projectId: string | undefined;
+    if (args.project) {
+      const project = await repo.getProject(args.project);
+      if (project) {
+        projectId = project.id;
+      } else {
+        projectId = args.project;
+      }
+    }
+
+    const filters: ExportFilters = {
+      project_id: projectId,
+      from: dateRange.from,
+      to: dateRange.to,
+      format: (args.format as ExportFilters["format"]) ?? "csv",
+    };
+
+    const result = await exportEntries(repo, filters);
+
+    if (args.output) {
+      writeFileSync(args.output, result.data + "\n");
+      success(
+        { file: args.output, format: result.format, entry_count: result.entry_count },
+        `Exported ${result.entry_count} entries to ${args.output}.`,
+      );
+    } else {
+      // Write raw data to stdout (no envelope)
+      process.stdout.write(result.data + "\n");
+    }
   },
 });

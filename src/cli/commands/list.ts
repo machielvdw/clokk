@@ -1,4 +1,10 @@
 import { defineCommand } from "citty";
+import { getContext } from "@/cli/context.ts";
+import { listEntries } from "@/core/entries.ts";
+import { success } from "@/cli/output.ts";
+import { formatEntryTable } from "@/cli/format.ts";
+import { parseTags, resolveDateShortcuts } from "@/cli/parse.ts";
+import type { EntryFilters, ListEntriesResult } from "@/core/types.ts";
 
 export default defineCommand({
   meta: {
@@ -58,7 +64,54 @@ export default defineCommand({
       description: "Number of entries to skip",
     },
   },
-  run() {
-    throw new Error("Not implemented");
+  async run({ args }) {
+    const { repo, config } = getContext();
+
+    // Resolve date shortcuts (--today, --week, etc.) into from/to
+    const dateRange = resolveDateShortcuts(args, {
+      weekStart: config.week_start,
+    });
+
+    // Resolve project name → ID if needed
+    let projectId: string | undefined;
+    if (args.project) {
+      const project = await repo.getProject(args.project);
+      if (project) {
+        projectId = project.id;
+      } else {
+        projectId = args.project; // pass through, let core handle error
+      }
+    }
+
+    const filters: EntryFilters = {
+      project_id: projectId,
+      tags: args.tags ? parseTags(args.tags) : undefined,
+      from: dateRange.from,
+      to: dateRange.to,
+      billable: args.billable,
+      running: args.running,
+      limit: args.limit ? parseInt(args.limit, 10) : undefined,
+      offset: args.offset ? parseInt(args.offset, 10) : undefined,
+    };
+
+    const result = await listEntries(repo, filters);
+
+    // Build project name map for human output
+    const projectIds = new Set(
+      result.entries
+        .map((e) => e.project_id)
+        .filter((id): id is string => id != null),
+    );
+    const projectNames = new Map<string, string>();
+    for (const pid of projectIds) {
+      const p = await repo.getProject(pid);
+      if (p) projectNames.set(pid, p.name);
+    }
+
+    success(
+      result,
+      `${result.entries.length} entries (${result.total} total).`,
+      (d) => formatEntryTable((d as ListEntriesResult).entries, { projectNames }),
+    );
   },
 });
