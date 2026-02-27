@@ -274,25 +274,25 @@
 
 **Depends on:** Phase 4 complete. *(Independent of Phases 5 and 6.)*
 
-- [ ] **F.2.1 — TUI scaffold & entry point** `§16`
-  - `bun add @opentui/core @opentui/react react` (or `@opentui/solid solid-js`)
-  - Scaffold `src/tui/` directory: `index.ts`, `app.tsx`, `components/`, `hooks/`
+- [x] **F.2.1 — TUI scaffold & entry point** `§16`
+  - `bun add @opentui/core @opentui/solid solid-js`
+  - Scaffold `src/tui/` directory: `index.tsx`, `app.tsx`, `components/`, `hooks/`
   - Register `clokk ui` command in CLI router
   - Basic shell: full-screen app with status bar showing keyboard hints
 
-- [ ] **F.2.2 — Live timer view** `§16`
+- [x] **F.2.2 — Live timer view** `§16`
   - `src/tui/components/timer.tsx` — displays running timer description + elapsed time
   - `src/tui/hooks/use-timer.ts` — polls `getStatus()` every 200ms, manages timer state
   - Keyboard shortcuts: `s` start (prompts for description), `x` stop, `w` switch, `r` resume, `c` cancel
   - Handles "no timer running" state with prompt to start
 
-- [ ] **F.2.3 — Entry list & project picker** `§16`
+- [x] **F.2.3 — Entry list & project picker** `§16`
   - `src/tui/components/entry-list.tsx` — scrollable list of recent entries, `j`/`k` or arrow navigation, pagination
   - `src/tui/components/project-picker.tsx` — overlay for project/tag selection with fuzzy filtering
   - Split-pane layout: timer pane (top/left) + entry list pane (bottom/right) using Flexbox
   - Focus management: Tab cycles between panes
 
-- [ ] **F.2.4 — Report visualization** `§16`
+- [x] **F.2.4 — Report visualization** `§16`
   - `src/tui/components/report-view.tsx` — grouped time summaries as ASCII bar charts
   - Date range navigation (day/week/month shortcuts)
   - Toggle between report view and entry list via keyboard

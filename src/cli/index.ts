@@ -45,6 +45,7 @@ export const main = defineCommand({
     auth: () => import("@/cli/commands/auth.ts").then((m) => m.default),
     schema: () => import("@/cli/commands/schema.ts").then((m) => m.default),
     commands: () => import("@/cli/commands/commands.ts").then((m) => m.default),
+    ui: () => import("@/cli/commands/ui.ts").then((m) => m.default),
   },
 });
 

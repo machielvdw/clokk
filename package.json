@@ -25,11 +25,14 @@
   },
   "dependencies": {
     "@libsql/client": "^0.17.0",
+    "@opentui/core": "^0.1.84",
+    "@opentui/solid": "^0.1.84",
     "citty": "0.2.1",
     "consola": "3.4.0",
     "dayjs": "1.11.13",
     "drizzle-orm": "0.44.2",
-    "nanoid": "5.1.5"
+    "nanoid": "5.1.5",
+    "solid-js": "^1.9.11"
   },
   "devDependencies": {
     "@types/bun": "1.2.4",
