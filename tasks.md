@@ -127,46 +127,46 @@
 
 ### Output & Parsing *(parallel with each other)*
 
-- [ ] **3.1 — Output system** `§5, §5.1, §5.2, §5.3`
+- [x] **3.1 — Output system** `§5, §5.1, §5.2, §5.3`
   - `src/cli/output.ts` — `detectOutputMode(): 'json' | 'human'`, `success(data, message)`, `error(err: ClokkError)`, exit code handling (0/1/2)
   - `src/cli/format.ts` — `formatEntry`, `formatProject`, `formatEntryTable`, `formatReport` (human-readable with consola, respects `NO_COLOR`)
   - `tests/cli/output.test.ts` — JSON envelope correctness, format detection logic (TTY → human, piped → JSON, `--json` override, `CLOKK_OUTPUT` env)
 
-- [ ] **3.2 — Input parsing** `§6.1, §6.2, §11, §12`
+- [x] **3.2 — Input parsing** `§6.1, §6.2, §11, §12`
   - `src/cli/parse.ts` — `parseTags(input): string[]`, `parseDateArg(input): string`, `parseDurationArg(input): number`, `resolveDateShortcuts(args): { from, to }` (converts `--today`/`--week`/`--month` to date ranges)
   - `tests/cli/parse.test.ts` — tag formats (comma/space/mixed), date shortcuts produce correct ranges
 
 ### Entry Point *(after 3.1 + 3.2)*
 
-- [ ] **3.3 — CLI entry point & command router** `§4, §6.2`
+- [x] **3.3 — CLI entry point & command router** `§4, §6.2`
   - `src/cli/index.ts` — root citty command with global flags (`--json`, `--human`, `--yes`, `--version`, `--help`), register all subcommands, setup hook (ensureConfigDir → loadConfig → createRepository), error boundary (catch `ClokkError` → format)
   - `tests/cli/index.test.ts` — `--version` prints version, `--help` shows help, unknown command errors
 
 ### Commands *(all parallel after 3.3)*
 
-- [ ] **3.4 — Timer commands** `§6.3 Timer Lifecycle`
+- [x] **3.4 — Timer commands** `§6.3 Timer Lifecycle`
   - `src/cli/commands/start.ts`, `stop.ts`, `status.ts`, `resume.ts`, `switch.ts`, `cancel.ts`
   - Each: define citty args/flags per spec → parse input → call core → format output
   - `cancel` prompts for confirmation in TTY mode (auto-confirm when piped or `--yes`)
   - `tests/cli/timer.test.ts` — spawn process, assert JSON envelopes for each command
 
-- [ ] **3.5 — Entry management commands** `§6.3 Entry Management`
+- [x] **3.5 — Entry management commands** `§6.3 Entry Management`
   - `src/cli/commands/log.ts`, `edit.ts`, `delete.ts`, `list.ts`
   - `log`: handle `--to`/`--duration` mutual exclusion
   - `delete`: confirmation prompt
   - `tests/cli/entries.test.ts` — spawn process, assert JSON for log/edit/delete/list
 
-- [ ] **3.6 — Project commands** `§6.3 Project Management`
+- [x] **3.6 — Project commands** `§6.3 Project Management`
   - `src/cli/commands/project.ts` — citty command with subcommands: create, list, edit, archive, delete
   - `tests/cli/project.test.ts` — spawn process, assert JSON for each subcommand
 
-- [ ] **3.7 — Report & export commands** `§6.3 Reporting`
+- [x] **3.7 — Report & export commands** `§6.3 Reporting`
   - `src/cli/commands/report.ts`, `export.ts`
   - `report`: date range shortcuts + `--group-by`
   - `export`: format selection, file output or stdout
   - `tests/cli/report.test.ts` — spawn process, assert JSON for report; verify CSV export output
 
-- [ ] **3.8 — Config, schema & commands commands** `§6.3 Configuration, §6.3 Agent Discoverability`
+- [x] **3.8 — Config, schema & commands commands** `§6.3 Configuration, §6.3 Agent Discoverability`
   - `src/cli/commands/config.ts` — subcommands: show, get, set
   - `src/cli/commands/schema.ts` — outputs complete CLI interface as JSON (built from citty command definitions)
   - `src/cli/commands/commands.ts` — lists all commands with descriptions
@@ -180,14 +180,14 @@
 
 **Depends on:** Phase 3 complete. *(All tasks can run in parallel.)*
 
-- [ ] **4.1 — Agent workflow tests** `§9, §17`
+- [x] **4.1 — Agent workflow tests** `§9, §17`
   - `tests/workflows/agent.test.ts` — run workflow stories §9.1–§9.9 as end-to-end tests (spawn `clokk` processes in sequence, assert JSON, use temp `CLOKK_DIR`)
   - Validates that an agent could execute every workflow using only `clokk schema` output
 
-- [ ] **4.2 — First-run experience** `§8`
+- [x] **4.2 — First-run experience** `§8`
   - `tests/integration/first-run.test.ts` — fresh `CLOKK_DIR` creates dir + config + DB on first command, subsequent runs reuse, env var override works
 
-- [ ] **4.3 — Binary compilation** `§14`
+- [x] **4.3 — Binary compilation** `§14`
   - Verify `bun build --compile` produces working binary
   - Smoke test compiled binary with basic commands
 
