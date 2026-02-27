@@ -126,7 +126,7 @@ describe("clokk commands", () => {
     const json = parseJson(r.stdout);
     expect(json.ok).toBe(true);
     expect(Array.isArray(json.data)).toBe(true);
-    expect(json.data.length).toBe(16);
+    expect(json.data.length).toBe(19);
     const names = json.data.map((c: { name: string }) => c.name);
     expect(names).toContain("start");
     expect(names).toContain("project");

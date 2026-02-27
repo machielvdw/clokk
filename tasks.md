@@ -299,6 +299,33 @@
 
 ---
 
+## Phase 8: Documentation & Agent Integration
+
+**Goal:** Update documentation to reflect TUI and sync additions. Design and implement first-class support for AI coding agents (Claude Code, OpenClaw, etc.) to use clokk as a tool/skill during development sessions.
+
+**Depends on:** Phases 5–7 complete (except F.5 manual setup).
+
+- [x] **8.1 — Documentation updates**
+  - Update README with TUI section (`clokk ui` usage, keyboard shortcuts, screenshot/demo)
+  - Update README to reflect SolidJS choice (not React) for TUI
+  - Update CLAUDE.md if any conventions changed (TUI layer patterns, `.tsx` files, Bun plugin setup)
+  - Review and update `clokk commands` and `clokk schema` output to include `ui` command
+
+- [ ] **8.2 — Agent integration research & design**
+  - Study how Claude Code, OpenClaw, and similar agents discover and use CLI tools (MCP servers, tool definitions, slash commands, skills)
+  - Analyze typical human workflows with coding agents: when would time tracking add value? (task transitions, session start/end, context switches, PR work)
+  - Design agent-friendly interaction patterns: should clokk expose an MCP server? A Claude Code skill? Hooks?
+  - Evaluate `clokk schema` output as a self-describing interface for agents — is it sufficient, or do agents need richer tool metadata?
+  - Consider automatic time tracking: agents could call `clokk start` when beginning a task and `clokk stop` when done, without human intervention
+
+- [ ] **8.3 — Agent integration implementation**
+  - Implement the chosen integration approach (MCP server, skill definitions, hook scripts, etc.)
+  - Ensure structured JSON output works seamlessly as tool responses
+  - Add agent-specific documentation (how to configure clokk as a tool/skill in your agent)
+  - Test with at least one real agent workflow end-to-end
+
+---
+
 ## Dependency Graph
 
 ```
@@ -350,4 +377,5 @@ F.3→F.4    F.1.*     F.2.*
 | Phase 5 | 6 | CI/CD pipeline, release workflow, npm, Homebrew |
 | Phase 6 | 5 | Turso adapter, factory update, sync/auth commands, tests |
 | Phase 7 | 4 | OpenTUI scaffold, live timer, entry list, reports |
-| **Phases 5–7** | **15** | |
+| Phase 8 | 3 | Documentation updates, agent integration research & implementation |
+| **Phases 5–8** | **18** | |

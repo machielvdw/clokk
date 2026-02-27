@@ -15,16 +15,16 @@ bun build ./src/cli/index.ts --compile --outfile dist/clokk  # Compile binary
 Three-layer architecture. Layers communicate through typed interfaces, never formatted strings or CLI flags.
 
 ```
-Interface Layer (CLI)  →  parses args, formats output, handles I/O
-Core Layer             →  pure business logic, typed in/out, throws typed errors
-Data Layer             →  Repository interface with SQLite backend
+Interface Layer (CLI + TUI)  →  parses args / renders terminal UI
+Core Layer                   →  pure business logic, typed in/out, throws typed errors
+Data Layer                   →  Repository interface with SQLite backend
 ```
 
 **Core layer**: every function takes `(repo: Repository, input?) → Promise<result>`. No awareness of CLI flags, output formatting, or database drivers. Repository is injected, never imported globally.
 
 **Data layer**: accessed exclusively through the `Repository` interface (`src/data/repository.ts`). `getProject(idOrName)` resolves both names and IDs by checking the `prj_` prefix. All mutations return the affected object.
 
-**CLI layer**: each command follows the same pattern — errors propagate to the entry point error boundary, no try/catch in commands:
+**CLI layer** (`src/cli/`): each command follows the same pattern — errors propagate to the entry point error boundary, no try/catch in commands:
 ```ts
 async run({ args }) {
   const { repo } = getContext();        // memoized context from src/cli/context.ts
@@ -33,12 +33,21 @@ async run({ args }) {
 }
 ```
 
+**TUI layer** (`src/tui/`): interactive terminal UI using OpenTUI (Zig-native renderer) + SolidJS (fine-grained reactivity). Launched via `clokk ui`. Reuses core/data layers — never imports CLI layer.
+
+- **Entry point**: `src/tui/index.ts` registers the SolidJS Bun plugin (`@opentui/solid/bun-plugin`) before loading any `.tsx` files. JSX lives in `src/tui/render.tsx` and component files.
+- **Components**: `src/tui/components/*.tsx` — SolidJS components using OpenTUI JSX elements (`<box>`, `<text>`, `<input>`, `<scrollbox>`).
+- **Hooks**: `src/tui/hooks/*.ts` — SolidJS hooks (`createSignal`, `createEffect`, `onCleanup`) for polling core functions. `useRepo()` provides Repository context.
+- **Bun plugin requirement**: SolidJS compiles JSX via Babel, not standard `jsx-runtime`. The plugin **must** be registered in a plain `.ts` file before any `.tsx` import. Never put JSX in `index.ts`.
+- **Binary compilation**: `src/cli/commands/ui.ts` uses an opaque dynamic import (`const path = "..."; import(path)`) so `bun build --compile` doesn't trace into TUI/SolidJS dependencies.
+
 ## Key Patterns
 
-**Imports**: use `@/` path alias (maps to `src/`) with explicit `.ts` extensions. Named exports only.
+**Imports**: use `@/` path alias (maps to `src/`) with explicit `.ts` extensions (`.tsx` for JSX files). Named exports only.
 ```ts
 import type { Repository } from "@/data/repository.ts";
 import { TimerAlreadyRunningError } from "@/core/errors.ts";
+import { Timer } from "@/tui/components/timer.tsx";  // .tsx for JSX
 ```
 
 **IDs**: prefixed + base36 timestamp + nanoid random suffix. Use `generateEntryId()` / `generateProjectId()` from `src/utils/id.ts`. Check with `isEntryId()` / `isProjectId()`.

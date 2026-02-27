@@ -314,7 +314,7 @@ describe("§9.9 — Agent self-onboarding", () => {
   it("commands returns all available commands", () => {
     const r = json(run(["commands", "--json"]).stdout);
     expect(r.ok).toBe(true);
-    expect(r.data.length).toBe(16);
+    expect(r.data.length).toBe(19);
     // Every command has name and description
     for (const cmd of r.data) {
       expect(cmd.name).toBeDefined();

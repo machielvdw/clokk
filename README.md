@@ -115,6 +115,20 @@ clokk report --today
 | `clokk config set <key> <value>` | Set a config value |
 | `clokk config get <key>` | Get a config value |
 
+### Sync & auth
+
+| Command | Description |
+|---|---|
+| `clokk sync` | Trigger a manual sync with Turso |
+| `clokk auth login` | Authenticate with the sync service |
+| `clokk auth logout` | Log out and clear credentials |
+
+### Interactive UI
+
+| Command | Description |
+|---|---|
+| `clokk ui` | Launch the interactive terminal UI |
+
 ### Agent discoverability
 
 | Command | Description |
@@ -155,6 +169,32 @@ Errors include machine-readable codes, messages, and actionable suggestions:
 }
 ```
 
+## Interactive terminal UI
+
+`clokk ui` launches a full-screen interactive interface for managing timers, viewing entries, and generating reports — all without leaving the terminal.
+
+```bash
+clokk ui
+```
+
+### Keyboard shortcuts
+
+| Key | Action |
+|---|---|
+| `s` | Start a new timer |
+| `x` | Stop the running timer |
+| `w` | Switch to a new task |
+| `r` | Resume the last timer |
+| `c` | Cancel the running timer |
+| `Tab` | Toggle focus between timer and entry list |
+| `j` / `k` | Navigate entries |
+| `n` / `N` | Next / previous page |
+| `R` | Toggle report view |
+| `?` | Show all shortcuts |
+| `q` | Quit |
+
+In report view: `d`/`w`/`m` set period (day/week/month), `h`/`l` navigate periods, `g` cycle grouping, `t` reset to today.
+
 ## Data storage
 
 All data lives at `~/.clokk/` (override with `CLOKK_DIR` env var):
@@ -191,3 +231,4 @@ bun src/cli/index.ts start    # Run without compiling
 - **Database:** SQLite via `bun:sqlite` — zero-dependency, instant reads/writes
 - **ORM:** [Drizzle](https://orm.drizzle.team) — type-safe schema, SQL-like query builder
 - **Output:** [consola](https://github.com/unjs/consola) — pluggable reporters, environment auto-detection
+- **TUI:** [OpenTUI](https://github.com/anomalyco/opentui) + [SolidJS](https://www.solidjs.com) — Zig-native terminal rendering with fine-grained reactivity

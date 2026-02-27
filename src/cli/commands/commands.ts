@@ -16,6 +16,9 @@ const COMMANDS = [
   { name: "report", description: "Generate a time report" },
   { name: "export", description: "Export time entries" },
   { name: "config", description: "Manage configuration (show, get, set)" },
+  { name: "sync", description: "Trigger a manual sync with Turso" },
+  { name: "auth", description: "Manage authentication (login, logout)" },
+  { name: "ui", description: "Launch the interactive terminal UI" },
   { name: "schema", description: "Output complete CLI schema as JSON" },
   { name: "commands", description: "List all available commands" },
 ];
