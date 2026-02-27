@@ -65,7 +65,7 @@ export default defineCommand({
     },
   },
   async run({ args }) {
-    const { repo, config } = getContext();
+    const { repo, config } = await getContext();
 
     // Resolve date shortcuts (--today, --week, etc.) into from/to
     const dateRange = resolveDateShortcuts(args, {

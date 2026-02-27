@@ -46,7 +46,7 @@ export default defineCommand({
     },
   },
   async run({ args }) {
-    const { repo } = getContext();
+    const { repo } = await getContext();
     const entry = await logEntry(repo, {
       description: args.description as string | undefined,
       project: args.project,

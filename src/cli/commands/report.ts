@@ -53,7 +53,7 @@ export default defineCommand({
     },
   },
   async run({ args }) {
-    const { repo, config } = getContext();
+    const { repo, config } = await getContext();
 
     // Default to --week when no date range given
     const hasDateArg = args.today || args.yesterday || args.week || args.month || args.from || args.to;

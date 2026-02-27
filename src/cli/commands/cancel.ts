@@ -26,7 +26,7 @@ export default defineCommand({
     if (!confirmed) {
       process.exit(0);
     }
-    const { repo } = getContext();
+    const { repo } = await getContext();
     const entry = await cancelTimer(repo);
     success(entry, "Timer cancelled.", (d) => formatEntry(d as Entry));
   },

@@ -17,7 +17,7 @@ export default defineCommand({
     },
   },
   async run({ args }) {
-    const { repo } = getContext();
+    const { repo } = await getContext();
     const entry = await resumeTimer(repo, {
       id: args.id,
     });

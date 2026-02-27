@@ -29,7 +29,7 @@ export default defineCommand({
     },
   },
   async run({ args }) {
-    const { repo } = getContext();
+    const { repo } = await getContext();
     const result = await switchTimer(repo, {
       description: args.description,
       project: args.project,

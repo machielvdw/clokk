@@ -46,7 +46,7 @@ export default defineCommand({
     },
   },
   async run({ args }) {
-    const { repo } = getContext();
+    const { repo } = await getContext();
     const entry = await editEntry(repo, args.entryId, {
       description: args.description,
       project: args.project,

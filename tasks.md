@@ -239,30 +239,32 @@
 
 **Depends on:** Phase 4 complete. *(Independent of Phase 5.)*
 
-- [ ] **F.1.1 — TursoRepository implementation** `§15`
+- [x] **F.1.1 — TursoRepository implementation** `§15`
   - `bun add @libsql/client` (v0.17+)
-  - `src/data/turso.ts` — `TursoRepository` class implementing `Repository` interface
+  - `src/data/turso.ts` — `TursoRepository` class implementing `SyncableRepository` interface
   - Uses `@libsql/client` `createClient()` with `url` (local file), `syncUrl`, `authToken`, `syncInterval`
   - Drizzle adapter: `drizzle-orm/libsql` instead of `drizzle-orm/bun-sqlite`
-  - Same `toEntry()`/`toProject()` mappers, same query patterns as `SqliteRepository`
+  - Shared `toEntry()`/`toProject()` mappers extracted to `src/data/mappers.ts`
 
-- [ ] **F.1.2 — Factory backend selection** `§15`
-  - Update `src/data/factory.ts`: if `config.turso.url` is set → `TursoRepository`; otherwise → `SqliteRepository`
-  - Ensure migrations run on first connect for both backends
+- [x] **F.1.2 — Factory backend selection** `§15`
+  - Updated `src/data/factory.ts`: if `config.turso.url` is set → `TursoRepository`; otherwise → `SqliteRepository`
+  - Factory is now async (`createRepository` returns `Promise<Repository>`)
+  - `getContext()` made async, all 20 command call sites updated with `await`
 
-- [ ] **F.1.3 — `clokk sync` command** `§15`
+- [x] **F.1.3 — `clokk sync` command** `§15`
   - `src/cli/commands/sync.ts` — triggers manual `client.sync()`, returns sync status
-  - Fails gracefully with helpful message if Turso is not configured
+  - Fails gracefully with `SYNC_NOT_CONFIGURED` error and helpful suggestion if Turso is not configured
 
-- [ ] **F.1.4 — `clokk auth` commands** `§15`
+- [x] **F.1.4 — `clokk auth` commands** `§15`
   - `src/cli/commands/auth.ts` — subcommands: `login`, `logout`
-  - `login`: provisions Turso credentials (prompt for URL + token, or integrate with Turso CLI), writes to config, runs initial sync
+  - `login`: takes `--url` and `--token` flags, validates URL scheme, writes to config
   - `logout`: removes Turso credentials from config, reverts to local-only mode
 
-- [ ] **F.1.5 — Turso tests** `§15, §17`
-  - `tests/data/turso.test.ts` — `TursoRepository` against in-memory libsql (same test patterns as `sqlite.test.ts`)
-  - `tests/cli/sync.test.ts` — integration tests for sync/auth commands
-  - Verify factory selects correct backend based on config
+- [x] **F.1.5 — Turso tests** `§15, §17`
+  - `tests/data/turso.test.ts` — `TursoRepository` against in-memory libsql (47 tests)
+  - `tests/core/sync.test.ts` — `triggerSync` guard and `isSyncableRepository` type guard
+  - `tests/core/auth.test.ts` — login/logout validation, config mutation
+  - `tests/cli/sync.test.ts` — CLI integration tests for sync/auth commands
 
 ---
 

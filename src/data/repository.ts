@@ -69,3 +69,27 @@ export interface Repository {
   /** Get entries matching report filters (no pagination, returns all matches). */
   getEntriesForReport(filters: ReportFilters): Promise<Entry[]>;
 }
+
+// ─── Sync ──────────────────────────────────────────────────────
+
+/** Result of a manual sync operation. */
+export interface SyncResult {
+  synced: boolean;
+  message: string;
+}
+
+/**
+ * A repository that supports cloud sync via Turso embedded replicas.
+ * Only TursoRepository implements this interface.
+ */
+export interface SyncableRepository extends Repository {
+  /** Trigger a manual sync with the remote database. */
+  sync(): Promise<SyncResult>;
+}
+
+/** Type guard: check if a Repository supports sync. */
+export function isSyncableRepository(
+  repo: Repository,
+): repo is SyncableRepository {
+  return "sync" in repo && typeof (repo as SyncableRepository).sync === "function";
+}

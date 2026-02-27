@@ -37,7 +37,7 @@ export default defineCommand({
     },
   },
   async run({ args }) {
-    const { repo } = getContext();
+    const { repo } = await getContext();
     const entry = await startTimer(repo, {
       description: args.description as string | undefined,
       project: args.project,

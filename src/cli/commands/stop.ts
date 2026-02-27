@@ -28,7 +28,7 @@ export default defineCommand({
     },
   },
   async run({ args }) {
-    const { repo } = getContext();
+    const { repo } = await getContext();
     const entry = await stopTimer(repo, {
       at: args.at ? parseDateArg(args.at) : undefined,
       description: args.description,

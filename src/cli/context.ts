@@ -15,11 +15,11 @@ let cached: ClokkContext | null = null;
  * Creates config dir, loads config, and opens the database on first call.
  * Subsequent calls return the cached context.
  */
-export function getContext(): ClokkContext {
+export async function getContext(): Promise<ClokkContext> {
   if (cached) return cached;
   ensureConfigDir();
   const config = loadConfig();
-  const repo = createRepository(config);
+  const repo = await createRepository(config);
   cached = { repo, config };
   return cached;
 }

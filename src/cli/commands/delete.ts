@@ -31,7 +31,7 @@ export default defineCommand({
     if (!confirmed) {
       process.exit(0);
     }
-    const { repo } = getContext();
+    const { repo } = await getContext();
     const entry = await deleteEntry(repo, args.entryId);
     success(entry, "Entry deleted.", (d) => formatEntry(d as Entry));
   },

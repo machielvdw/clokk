@@ -41,6 +41,8 @@ export const main = defineCommand({
     report: () => import("@/cli/commands/report.ts").then((m) => m.default),
     export: () => import("@/cli/commands/export.ts").then((m) => m.default),
     config: () => import("@/cli/commands/config.ts").then((m) => m.default),
+    sync: () => import("@/cli/commands/sync.ts").then((m) => m.default),
+    auth: () => import("@/cli/commands/auth.ts").then((m) => m.default),
     schema: () => import("@/cli/commands/schema.ts").then((m) => m.default),
     commands: () => import("@/cli/commands/commands.ts").then((m) => m.default),
   },

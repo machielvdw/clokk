@@ -1,8 +1,8 @@
-import { type BunSQLiteDatabase, drizzle } from "drizzle-orm/bun-sqlite";
+import type { Client } from "@libsql/client";
+import { type LibSQLDatabase, drizzle } from "drizzle-orm/libsql";
 import { and, count, desc, eq, isNull } from "drizzle-orm";
-import type { Database } from "bun:sqlite";
 
-import type { Repository } from "@/data/repository.ts";
+import type { SyncResult, SyncableRepository } from "@/data/repository.ts";
 import * as schema from "@/data/schema.ts";
 import { entries, projects } from "@/data/schema.ts";
 import type {
@@ -29,11 +29,29 @@ import {
   toProject,
 } from "@/data/mappers.ts";
 
-export class SqliteRepository implements Repository {
-  private db: BunSQLiteDatabase<typeof schema>;
+export class TursoRepository implements SyncableRepository {
+  private db: LibSQLDatabase<typeof schema>;
+  private client: Client;
 
-  constructor(sqlite: Database) {
-    this.db = drizzle(sqlite, { schema });
+  constructor(client: Client) {
+    this.client = client;
+    this.db = drizzle(client, { schema });
+  }
+
+  // ─── Sync ──────────────────────────────────────────────────────
+
+  async sync(): Promise<SyncResult> {
+    try {
+      const result = await this.client.sync();
+      const frames = result?.frames_synced ?? 0;
+      return {
+        synced: true,
+        message: `Sync completed successfully (${frames} frames synced).`,
+      };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { synced: false, message: `Sync failed: ${msg}` };
+    }
   }
 
   // ─── Entries ──────────────────────────────────────────────────
@@ -48,12 +66,12 @@ export class SqliteRepository implements Repository {
       tags: JSON.stringify(entry.tags ?? []),
       billable: entry.billable === false ? 0 : 1,
     };
-    this.db.insert(entries).values(row).run();
+    await this.db.insert(entries).values(row).run();
     return this.getEntryOrThrow(entry.id);
   }
 
   async getEntry(id: string): Promise<Entry | null> {
-    const row = this.db
+    const row = await this.db
       .select()
       .from(entries)
       .where(eq(entries.id, id))
@@ -62,7 +80,11 @@ export class SqliteRepository implements Repository {
   }
 
   async updateEntry(id: string, updates: EntryUpdates): Promise<Entry> {
-    const existing = this.db.select().from(entries).where(eq(entries.id, id)).get();
+    const existing = await this.db
+      .select()
+      .from(entries)
+      .where(eq(entries.id, id))
+      .get();
     if (!existing) throw new EntryNotFoundError(id);
 
     const values: Record<string, unknown> = { updated_at: nowISO() };
@@ -73,16 +95,20 @@ export class SqliteRepository implements Repository {
     if (updates.tags !== undefined) values.tags = JSON.stringify(updates.tags);
     if (updates.billable !== undefined) values.billable = updates.billable ? 1 : 0;
 
-    this.db.update(entries).set(values).where(eq(entries.id, id)).run();
+    await this.db.update(entries).set(values).where(eq(entries.id, id)).run();
     return this.getEntryOrThrow(id);
   }
 
   async deleteEntry(id: string): Promise<Entry> {
-    const existing = this.db.select().from(entries).where(eq(entries.id, id)).get();
+    const existing = await this.db
+      .select()
+      .from(entries)
+      .where(eq(entries.id, id))
+      .get();
     if (!existing) throw new EntryNotFoundError(id);
 
     const entry = toEntry(existing);
-    this.db.delete(entries).where(eq(entries.id, id)).run();
+    await this.db.delete(entries).where(eq(entries.id, id)).run();
     return entry;
   }
 
@@ -93,7 +119,7 @@ export class SqliteRepository implements Repository {
     const limit = filters.limit ?? 50;
     const offset = filters.offset ?? 0;
 
-    const rows = this.db
+    const rows = await this.db
       .select()
       .from(entries)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
@@ -102,7 +128,7 @@ export class SqliteRepository implements Repository {
       .offset(offset)
       .all();
 
-    const totalResult = this.db
+    const totalResult = await this.db
       .select({ count: count() })
       .from(entries)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
@@ -115,7 +141,7 @@ export class SqliteRepository implements Repository {
   }
 
   async getRunningEntry(): Promise<Entry | null> {
-    const row = this.db
+    const row = await this.db
       .select()
       .from(entries)
       .where(isNull(entries.end_time))
@@ -134,7 +160,7 @@ export class SqliteRepository implements Repository {
       rate: project.rate ?? null,
       currency: project.currency ?? "USD",
     };
-    this.db.insert(projects).values(row).run();
+    await this.db.insert(projects).values(row).run();
     return this.getProjectOrThrow(project.id);
   }
 
@@ -143,12 +169,16 @@ export class SqliteRepository implements Repository {
       ? eq(projects.id, idOrName)
       : eq(projects.name, idOrName);
 
-    const row = this.db.select().from(projects).where(condition).get();
+    const row = await this.db.select().from(projects).where(condition).get();
     return row ? toProject(row) : null;
   }
 
   async updateProject(id: string, updates: ProjectUpdates): Promise<Project> {
-    const existing = this.db.select().from(projects).where(eq(projects.id, id)).get();
+    const existing = await this.db
+      .select()
+      .from(projects)
+      .where(eq(projects.id, id))
+      .get();
     if (!existing) throw new ProjectNotFoundError(id);
 
     const values: Record<string, unknown> = { updated_at: nowISO() };
@@ -159,7 +189,7 @@ export class SqliteRepository implements Repository {
     if (updates.currency !== undefined) values.currency = updates.currency;
     if (updates.archived !== undefined) values.archived = updates.archived ? 1 : 0;
 
-    this.db.update(projects).set(values).where(eq(projects.id, id)).run();
+    await this.db.update(projects).set(values).where(eq(projects.id, id)).run();
     return this.getProjectOrThrow(id);
   }
 
@@ -167,13 +197,16 @@ export class SqliteRepository implements Repository {
     id: string,
     opts: { force?: boolean } = {},
   ): Promise<Project> {
-    const existing = this.db.select().from(projects).where(eq(projects.id, id)).get();
+    const existing = await this.db
+      .select()
+      .from(projects)
+      .where(eq(projects.id, id))
+      .get();
     if (!existing) throw new ProjectNotFoundError(id);
 
     const project = toProject(existing);
 
-    // Check for referencing entries
-    const entryCountResult = this.db
+    const entryCountResult = await this.db
       .select({ count: count() })
       .from(entries)
       .where(eq(entries.project_id, id))
@@ -185,15 +218,14 @@ export class SqliteRepository implements Repository {
     }
 
     if (entryCount > 0 && opts.force) {
-      // Unassign entries before deleting
-      this.db
+      await this.db
         .update(entries)
         .set({ project_id: null, updated_at: nowISO() })
         .where(eq(entries.project_id, id))
         .run();
     }
 
-    this.db.delete(projects).where(eq(projects.id, id)).run();
+    await this.db.delete(projects).where(eq(projects.id, id)).run();
     return project;
   }
 
@@ -202,7 +234,7 @@ export class SqliteRepository implements Repository {
       ? undefined
       : eq(projects.archived, 0);
 
-    const rows = this.db
+    const rows = await this.db
       .select()
       .from(projects)
       .where(condition)
@@ -217,7 +249,7 @@ export class SqliteRepository implements Repository {
   async getEntriesForReport(filters: ReportFilters): Promise<Entry[]> {
     const conditions = buildEntryConditions(filters);
 
-    const rows = this.db
+    const rows = await this.db
       .select()
       .from(entries)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
@@ -240,5 +272,4 @@ export class SqliteRepository implements Repository {
     if (!project) throw new ProjectNotFoundError(id);
     return project;
   }
-
 }

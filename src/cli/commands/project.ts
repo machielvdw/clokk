@@ -40,7 +40,7 @@ export default defineCommand({
         },
       },
       async run({ args }) {
-        const { repo } = getContext();
+        const { repo } = await getContext();
         const project = await createProject(repo, {
           name: args.name,
           client: args.client,
@@ -60,7 +60,7 @@ export default defineCommand({
         },
       },
       async run({ args }) {
-        const { repo } = getContext();
+        const { repo } = await getContext();
         const projects = await listProjects(repo, {
           include_archived: args.archived,
         });
@@ -101,7 +101,7 @@ export default defineCommand({
         },
       },
       async run({ args }) {
-        const { repo } = getContext();
+        const { repo } = await getContext();
         const project = await editProject(repo, args.nameOrId, {
           name: args.name,
           client: args.client,
@@ -122,7 +122,7 @@ export default defineCommand({
         },
       },
       async run({ args }) {
-        const { repo } = getContext();
+        const { repo } = await getContext();
         const project = await archiveProject(repo, args.nameOrId);
         success(project, "Project archived.", (d) => formatProject(d as Project));
       },
@@ -153,7 +153,7 @@ export default defineCommand({
         if (!confirmed) {
           process.exit(0);
         }
-        const { repo } = getContext();
+        const { repo } = await getContext();
         const project = await deleteProject(repo, args.nameOrId, {
           force: args.force,
         });

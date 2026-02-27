@@ -20,7 +20,7 @@ describe("createRepository", () => {
     mkdirSync(TEST_DIR, { recursive: true });
 
     const config = getDefaultConfig();
-    const repo = createRepository(config);
+    const repo = await createRepository(config);
 
     // Verify it works by creating and reading a project
     const project = await repo.createProject({
@@ -35,12 +35,12 @@ describe("createRepository", () => {
     expect(found!.name).toBe("Test Project");
   });
 
-  it("creates database file at expected path", () => {
+  it("creates database file at expected path", async () => {
     process.env.CLOKK_DIR = TEST_DIR;
     mkdirSync(TEST_DIR, { recursive: true });
 
     const config = getDefaultConfig();
-    createRepository(config);
+    await createRepository(config);
 
     expect(existsSync(join(TEST_DIR, "clokk.db"))).toBe(true);
   });
@@ -50,7 +50,7 @@ describe("createRepository", () => {
     mkdirSync(TEST_DIR, { recursive: true });
 
     const config = getDefaultConfig();
-    const repo = createRepository(config);
+    const repo = await createRepository(config);
 
     // Create project + entry, delete project, entry.project_id should be null
     await repo.createProject({ id: "prj_1", name: "Test" });

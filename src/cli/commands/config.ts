@@ -16,7 +16,7 @@ export default defineCommand({
       meta: { name: "show", description: "Show all configuration values" },
       args: {},
       async run() {
-        const { config } = getContext();
+        const { config } = await getContext();
         const result = showConfig(config);
         success(result, "Configuration:", (d) =>
           JSON.stringify(d as ClokkConfig, null, 2),
@@ -33,7 +33,7 @@ export default defineCommand({
         },
       },
       async run({ args }) {
-        const { config } = getContext();
+        const { config } = await getContext();
         const result = getConfigValue(config, args.key);
         success(result, `${result.key} = ${JSON.stringify(result.value)}`, (d) => {
           const r = d as { key: string; value: unknown };
@@ -56,7 +56,7 @@ export default defineCommand({
         },
       },
       async run({ args }) {
-        const { config } = getContext();
+        const { config } = await getContext();
         // Parse CLI string values into appropriate types
         const parsed = parseConfigValue(args.value);
         const result = setConfigValue(config, args.key, parsed);

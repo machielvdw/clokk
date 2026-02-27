@@ -12,7 +12,7 @@ export default defineCommand({
   },
   args: {},
   async run() {
-    const { repo } = getContext();
+    const { repo } = await getContext();
     const result = await getStatus(repo);
     success(result, result.running ? "Timer is running." : "No timer running.", (d) => formatStatus(d as StatusResult));
   },
