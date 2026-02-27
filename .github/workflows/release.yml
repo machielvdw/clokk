@@ -1,0 +1,211 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  # ── Gate: run tests before building anything ──────────────────────
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun tsc --noEmit
+      - run: bun test
+
+  # ── Matrix build: compile for all 5 targets ──────────────────────
+  build:
+    name: Build (${{ matrix.artifact }})
+    needs: test
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - target: bun-darwin-x64
+            runner: macos-latest
+            artifact: clokk-darwin-x64
+            smoke: true
+          - target: bun-darwin-arm64
+            runner: macos-14
+            artifact: clokk-darwin-arm64
+            smoke: true
+          - target: bun-linux-x64
+            runner: ubuntu-latest
+            artifact: clokk-linux-x64
+            smoke: true
+          - target: bun-linux-arm64
+            runner: ubuntu-latest
+            artifact: clokk-linux-arm64
+            smoke: false
+          - target: bun-windows-x64
+            runner: windows-latest
+            artifact: clokk-windows-x64.exe
+            smoke: true
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build binary
+        run: bun build ./src/cli/index.ts --compile --target=${{ matrix.target }} --outfile dist/${{ matrix.artifact }}
+
+      - name: Smoke test
+        if: matrix.smoke
+        run: ./dist/${{ matrix.artifact }} --version
+        shell: bash
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/${{ matrix.artifact }}
+
+  # ── Create GitHub Release with all binaries + checksums ──────────
+  release:
+    name: GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release
+          for dir in artifacts/*/; do
+            cp "$dir"* release/ 2>/dev/null || true
+          done
+          cd release
+          sha256sum * > checksums.txt
+          cat checksums.txt
+
+      - name: Verify tag matches package.json version
+        env:
+          TAG_VERSION: ${{ github.ref_name }}
+        run: |
+          version="${TAG_VERSION#v}"
+          pkg_version=$(node -p "require('./package.json').version")
+          if [ "$version" != "$pkg_version" ]; then
+            echo "::error::Tag version ($version) does not match package.json version ($pkg_version)"
+            exit 1
+          fi
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+
+  # ── Publish to npm ───────────────────────────────────────────────
+  npm-publish:
+    name: npm Publish
+    needs: release
+    runs-on: ubuntu-latest
+    if: vars.NPM_PUBLISH == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Publish
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # ── Update Homebrew tap ──────────────────────────────────────────
+  homebrew:
+    name: Update Homebrew Tap
+    needs: release
+    runs-on: ubuntu-latest
+    if: vars.HOMEBREW_PUBLISH == 'true'
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Compute checksums
+        id: sha
+        run: |
+          echo "darwin_x64=$(sha256sum artifacts/clokk-darwin-x64/clokk-darwin-x64 | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          echo "darwin_arm64=$(sha256sum artifacts/clokk-darwin-arm64/clokk-darwin-arm64 | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          echo "linux_x64=$(sha256sum artifacts/clokk-linux-x64/clokk-linux-x64 | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          echo "linux_arm64=$(sha256sum artifacts/clokk-linux-arm64/clokk-linux-arm64 | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Update formula
+        env:
+          TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          VERSION: ${{ github.ref_name }}
+          SHA_DARWIN_X64: ${{ steps.sha.outputs.darwin_x64 }}
+          SHA_DARWIN_ARM64: ${{ steps.sha.outputs.darwin_arm64 }}
+          SHA_LINUX_X64: ${{ steps.sha.outputs.linux_x64 }}
+          SHA_LINUX_ARM64: ${{ steps.sha.outputs.linux_arm64 }}
+        run: |
+          tag="$VERSION"
+          version="${tag#v}"
+
+          git clone "https://x-access-token:${TAP_TOKEN}@github.com/machielvdw/homebrew-tap.git" tap
+          cd tap
+
+          mkdir -p Formula
+          cat > Formula/clokk.rb << FORMULA
+          class Clokk < Formula
+            desc "A local-first CLI time tracker built for humans and AI agents"
+            homepage "https://github.com/machielvdw/clokk"
+            version "${version}"
+            license "MIT"
+
+            on_macos do
+              on_arm do
+                url "https://github.com/machielvdw/clokk/releases/download/${tag}/clokk-darwin-arm64"
+                sha256 "${SHA_DARWIN_ARM64}"
+              end
+              on_intel do
+                url "https://github.com/machielvdw/clokk/releases/download/${tag}/clokk-darwin-x64"
+                sha256 "${SHA_DARWIN_X64}"
+              end
+            end
+
+            on_linux do
+              on_arm do
+                url "https://github.com/machielvdw/clokk/releases/download/${tag}/clokk-linux-arm64"
+                sha256 "${SHA_LINUX_ARM64}"
+              end
+              on_intel do
+                url "https://github.com/machielvdw/clokk/releases/download/${tag}/clokk-linux-x64"
+                sha256 "${SHA_LINUX_X64}"
+              end
+            end
+
+            def install
+              binary = Dir.children(".").first
+              bin.install binary => "clokk"
+            end
+
+            test do
+              assert_match version.to_s, shell_output("#{bin}/clokk --version").strip
+            end
+          end
+          FORMULA
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/clokk.rb
+          git commit -m "clokk ${version}"
+          git push

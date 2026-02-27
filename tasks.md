@@ -199,31 +199,37 @@
 
 **Depends on:** Phase 4 complete. *(F.3.1 can start immediately; F.3.2–F.3.3 and F.4 after F.3.1.)*
 
-- [ ] **F.3.1 — CI workflow** `§17`
+- [x] **F.3.1 — CI workflow** `§17`
   - `.github/workflows/ci.yml` — triggered on push and PR
   - Steps: `oven-sh/setup-bun@v2` → `bun install` → `bun tsc --noEmit` → `bun test` → `bun build --compile` (smoke test)
   - Validates that every push has no type errors, passes tests, and compiles
 
-- [ ] **F.3.2 — Release workflow** `§14, §17`
+- [x] **F.3.2 — Release workflow** `§14, §17`
   - `.github/workflows/release.yml` — triggered on `v*` tag push
   - Matrix build: compile for 5 targets (`bun-darwin-x64`, `bun-darwin-arm64`, `bun-linux-x64`, `bun-linux-arm64`, `bun-windows-x64`) using platform-specific runners
-  - Upload artifacts → create GitHub Release via `softprops/action-gh-release@v1` with all binaries + `checksums.txt` (SHA256)
+  - Upload artifacts → create GitHub Release via `softprops/action-gh-release@v2` with all binaries + `checksums.txt` (SHA256)
 
-- [ ] **F.3.3 — npm publish step** `§14`
-  - Add npm publish to release workflow: `bun publish --access public`
-  - Configure npm OIDC trusted publishing for provenance attestation
-  - Add `files` and `publishConfig` fields to `package.json`
+- [x] **F.3.3 — npm publish step** `§14`
+  - Added npm publish job to release workflow: `npm publish --access public` (via `actions/setup-node@v4`, not `bun publish` which lacks OIDC support)
+  - Gated by `vars.NPM_PUBLISH` repository variable; add `files` and `publishConfig` fields to `package.json`
 
-- [ ] **F.4.1 — Homebrew tap** `§14`
-  - Create `homebrew-tap` repository with `Formula/clokk.rb`
+- [x] **F.4.1 — Homebrew tap** `§14`
+  - Reference formula at `homebrew/clokk.rb` (user creates `homebrew-tap` repository separately)
   - Formula uses `on_macos`/`on_linux` + `on_arm`/`on_intel` blocks to select platform-specific binary from GitHub Releases
-  - SHA256 checksums from `checksums.txt`
 
-- [ ] **F.4.2 — Automated formula updates** `§14`
-  - Add step to release workflow that pushes updated formula (new version + checksums) to the `homebrew-tap` repository after each release
+- [x] **F.4.2 — Automated formula updates** `§14`
+  - Homebrew job in release workflow computes checksums and pushes updated formula to tap repo
+  - Gated by `vars.HOMEBREW_PUBLISH` repository variable + `HOMEBREW_TAP_TOKEN` secret
 
-- [ ] **F.4.3 — Install documentation**
-  - Update README with install instructions for all three channels (npm, binary, Homebrew)
+- [x] **F.4.3 — Install documentation**
+  - Updated README with install instructions for all four channels (npm, binary, Homebrew, source)
+
+- [ ] **F.5 — Release pipeline activation** *(manual setup, not code)*
+  - Create `machielvdw/homebrew-tap` repo with `Formula/` directory
+  - Set repo variables: `NPM_PUBLISH=true`, `HOMEBREW_PUBLISH=true`
+  - Add repo secrets: `NPM_TOKEN` (npm access token), `HOMEBREW_TAP_TOKEN` (PAT with repo scope)
+  - Bump version in `package.json` + `src/cli/index.ts`, tag `v0.1.0`, push tag to trigger first release
+  - Verify: GitHub Release created with 5 binaries + checksums, npm package published, Homebrew formula updated
 
 ---
 

@@ -3,6 +3,16 @@
   "version": "0.1.0",
   "description": "A local-first CLI time tracker built for humans and AI agents",
   "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/machielvdw/clokk.git"
+  },
+  "keywords": ["time-tracking", "cli", "timer", "productivity", "bun"],
+  "files": ["src/", "drizzle/", "tsconfig.json"],
+  "publishConfig": {
+    "access": "public"
+  },
   "bin": {
     "clokk": "src/cli/index.ts"
   },
