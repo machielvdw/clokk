@@ -1,7 +1,5 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Commands
 
 ```bash
@@ -22,9 +20,18 @@ Core Layer             →  pure business logic, typed in/out, throws typed erro
 Data Layer             →  Repository interface with SQLite backend
 ```
 
-**Core layer rules**: every function takes `(repo: Repository, input?) → Promise<result>`. No awareness of CLI flags, output formatting, or database drivers. Repository is injected, never imported globally.
+**Core layer**: every function takes `(repo: Repository, input?) → Promise<result>`. No awareness of CLI flags, output formatting, or database drivers. Repository is injected, never imported globally.
 
-**Data layer rules**: accessed exclusively through the `Repository` interface (`src/data/repository.ts`). `getProject(idOrName)` resolves both names and IDs by checking the `prj_` prefix. All mutations return the affected object.
+**Data layer**: accessed exclusively through the `Repository` interface (`src/data/repository.ts`). `getProject(idOrName)` resolves both names and IDs by checking the `prj_` prefix. All mutations return the affected object.
+
+**CLI layer**: each command follows the same pattern — errors propagate to the entry point error boundary, no try/catch in commands:
+```ts
+async run({ args }) {
+  const { repo } = getContext();        // memoized context from src/cli/context.ts
+  const result = await coreFunction(repo, parsedInput);
+  success(result, "Message.", (d) => formatResult(d as Type));
+}
+```
 
 ## Key Patterns
 
@@ -42,7 +49,11 @@ import { TimerAlreadyRunningError } from "@/core/errors.ts";
 
 **Errors**: all extend `ClokkError` with `code` (UPPER_SNAKE_CASE), `message`, `suggestions` (executable commands), `context` (machine-readable), `exitCode` (1=user, 2=system). Defined in `src/core/errors.ts`.
 
-**Testing**: in-memory SQLite with full Drizzle migrations, no mocks. Each test file has its own `createRepo()` helper:
+**Single timer model**: only one timer can run at a time. `startTimer` throws `TimerAlreadyRunningError` if one exists. Use `switch` for task transitions.
+
+## Testing
+
+**Core/data tests**: in-memory SQLite with full Drizzle migrations, no mocks. Each test file has its own `createRepo()` helper:
 ```ts
 function createRepo(): Repository {
   const sqlite = new Database(":memory:");
@@ -51,6 +62,14 @@ function createRepo(): Repository {
   migrate(db, { migrationsFolder: "./drizzle" });
   return new SqliteRepository(sqlite);
 }
+```
+
+**CLI integration tests**: spawn real process with isolated temp dir, assert on JSON output:
+```ts
+const proc = Bun.spawnSync(["bun", "src/cli/index.ts", ...args], {
+  cwd: PROJECT_ROOT,
+  env: { ...process.env, CLOKK_DIR: tmpDir },
+});
 ```
 
 ## Configuration
