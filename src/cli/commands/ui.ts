@@ -7,7 +7,10 @@ export default defineCommand({
   },
   args: {},
   async run() {
-    const { launchTui } = await import("@/tui/index.ts");
+    // Dynamic path prevents bun build --compile from statically analyzing
+    // the TUI module tree (which requires the SolidJS Bun plugin at runtime).
+    const modulePath = "@/tui/index.ts";
+    const { launchTui } = await import(modulePath);
     await launchTui();
   },
 });
