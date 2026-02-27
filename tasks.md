@@ -326,6 +326,39 @@
 
 ---
 
+## Phase 9: Developer Tooling
+
+**Goal:** Consistent code style and quality enforcement with Biome (linter + formatter). Replace ad-hoc formatting with a fast, opinionated toolchain.
+
+**Depends on:** None (can be done anytime).
+
+- [ ] **9.1 — Biome setup & configuration**
+  - `bun add -d @biomejs/biome` — install as dev dependency
+  - `bunx biome init` — generate `biome.json` config
+  - Configure for this project:
+    - Formatter: indent with tabs or spaces (match existing style), line width 100, trailing commas
+    - Linter: enable recommended rules, configure TypeScript-specific rules
+    - Organize imports: enable import sorting
+    - Files: include `src/`, `tests/`, exclude `drizzle/`, `dist/`, `node_modules/`
+    - Override for `.tsx` files if needed (JSX-specific rules)
+  - Align rules with existing code conventions (e.g., named exports only, `@/` path alias usage)
+
+- [ ] **9.2 — Package scripts & CI integration**
+  - Add scripts to `package.json`:
+    - `"lint": "bunx biome check src/ tests/"` — lint + format check
+    - `"lint:fix": "bunx biome check --write src/ tests/"` — auto-fix
+    - `"format": "bunx biome format --write src/ tests/"` — format only
+  - Update `.github/workflows/ci.yml` — add `bun run lint` step before tests
+  - Update `CLAUDE.md` — add lint/format commands to the Commands section
+
+- [ ] **9.3 — Codebase formatting pass**
+  - Run `bunx biome check --write src/ tests/` to auto-fix the entire codebase
+  - Review and resolve any lint errors that can't be auto-fixed
+  - Verify all tests still pass after formatting changes
+  - Single commit: "chore: format codebase with Biome"
+
+---
+
 ## Dependency Graph
 
 ```
@@ -362,6 +395,9 @@ Phase 5    Phase 6   Phase 7
 CI/CD      Sync      TUI
 F.3→F.4    F.1.*     F.2.*
 (serial)  (parallel) (parallel)
+
+Phase 9 ─ Developer Tooling (independent, anytime)
+  9.1 Biome Setup ─→ 9.2 Scripts & CI ─→ 9.3 Format Pass
 ```
 
 ## Task Summary
@@ -378,4 +414,5 @@ F.3→F.4    F.1.*     F.2.*
 | Phase 6 | 5 | Turso adapter, factory update, sync/auth commands, tests |
 | Phase 7 | 4 | OpenTUI scaffold, live timer, entry list, reports |
 | Phase 8 | 3 | Documentation updates, agent integration research & implementation |
-| **Phases 5–8** | **18** | |
+| Phase 9 | 3 | Biome linter + formatter setup, CI integration, codebase formatting |
+| **Phases 5–9** | **21** | |
