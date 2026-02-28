@@ -101,7 +101,7 @@ add_to_path() {
     fi
     printf "\n# clokk\n%s\n" "$EXPORT_LINE" >> "$PROFILE"
     info "Added $INSTALL_DIR to PATH in $PROFILE"
-    info "Run \"source $PROFILE\" or open a new terminal to use clokk."
+    info "Restart your terminal or run \"source $PROFILE\" to use clokk."
   else
     info "Add $INSTALL_DIR to your PATH to use clokk from anywhere."
   fi
