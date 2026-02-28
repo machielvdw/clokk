@@ -1,7 +1,9 @@
 import type { ArgsDef, CommandDef, SubCommandsDef } from "citty";
 import { defineCommand, runCommand, showUsage } from "citty";
 import { detectOutputMode, error as outputError } from "@/cli/output.ts";
+import { getConfigDir } from "@/config.ts";
 import { ClokkError, DatabaseError } from "@/core/errors.ts";
+import { checkForUpdate } from "@/core/version.ts";
 
 const VERSION = "0.1.0";
 
@@ -104,6 +106,18 @@ async function run(): Promise<void> {
     }
 
     await runCommand(main, { rawArgs });
+
+    // Version check — only in TTY mode, skip for meta/long-running commands
+    const skipCheck = ["--version", "--help", "-h"];
+    const skipCommands = ["schema", "commands", "usage", "mcp", "ui"];
+    const firstArg = rawArgs.find((a) => !a.startsWith("-"));
+    if (
+      getOutputMode(rawArgs) === "human" &&
+      !skipCheck.some((f) => rawArgs.includes(f)) &&
+      (!firstArg || !skipCommands.includes(firstArg))
+    ) {
+      await checkForUpdate(getConfigDir(), VERSION);
+    }
   } catch (err) {
     // ClokkError: format as JSON envelope or human error, exit with err.exitCode
     if (err instanceof ClokkError) {
