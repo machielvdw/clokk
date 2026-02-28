@@ -1,9 +1,9 @@
 import { defineCommand } from "citty";
-import { getContext } from "@/cli/context.ts";
-import { cancelTimer } from "@/core/timer.ts";
 import { confirmAction } from "@/cli/confirm.ts";
-import { success } from "@/cli/output.ts";
+import { getContext } from "@/cli/context.ts";
 import { formatEntry } from "@/cli/format.ts";
+import { success } from "@/cli/output.ts";
+import { cancelTimer } from "@/core/timer.ts";
 import type { Entry } from "@/core/types.ts";
 
 export default defineCommand({
@@ -19,10 +19,7 @@ export default defineCommand({
     },
   },
   async run({ args }) {
-    const confirmed = await confirmAction(
-      "Discard the running timer?",
-      { yes: args.yes },
-    );
+    const confirmed = await confirmAction("Discard the running timer?", { yes: args.yes });
     if (!confirmed) {
       process.exit(0);
     }

@@ -1,10 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import {
-  parseTags,
-  parseDateArg,
-  parseDurationArg,
-  resolveDateShortcuts,
-} from "@/cli/parse.ts";
+import { parseDateArg, parseDurationArg, parseTags, resolveDateShortcuts } from "@/cli/parse.ts";
 import { ValidationError } from "@/core/errors.ts";
 
 // Wednesday, 2026-02-25 14:30:00 UTC
@@ -139,10 +134,7 @@ describe("resolveDateShortcuts", () => {
 
     it("resolves with sunday week start", () => {
       // NOW is Wednesday Feb 25, so sunday = Feb 22
-      const result = resolveDateShortcuts(
-        { week: true },
-        { weekStart: "sunday", now: NOW },
-      );
+      const result = resolveDateShortcuts({ week: true }, { weekStart: "sunday", now: NOW });
       expect(result.from).toBe("2026-02-22T00:00:00.000Z");
       expect(result.to).toBe("2026-02-25T14:30:00.000Z");
     });
@@ -150,10 +142,7 @@ describe("resolveDateShortcuts", () => {
     it("handles when today is the week start day", () => {
       // Monday Feb 23
       const monday = new Date("2026-02-23T10:00:00.000Z");
-      const result = resolveDateShortcuts(
-        { week: true },
-        { weekStart: "monday", now: monday },
-      );
+      const result = resolveDateShortcuts({ week: true }, { weekStart: "monday", now: monday });
       expect(result.from).toBe("2026-02-23T00:00:00.000Z");
       expect(result.to).toBe("2026-02-23T10:00:00.000Z");
     });
@@ -169,10 +158,7 @@ describe("resolveDateShortcuts", () => {
 
   describe("priority", () => {
     it("today takes precedence over other shortcuts", () => {
-      const result = resolveDateShortcuts(
-        { today: true, week: true, month: true },
-        { now: NOW },
-      );
+      const result = resolveDateShortcuts({ today: true, week: true, month: true }, { now: NOW });
       expect(result.from).toBe("2026-02-25T00:00:00.000Z");
       expect(result.to).toBe("2026-02-25T23:59:59.999Z");
     });

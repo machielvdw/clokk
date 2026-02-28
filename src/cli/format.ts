@@ -1,12 +1,7 @@
 import { colorize, leftAlign, rightAlign, stripAnsi } from "consola/utils";
+import type { Entry, Project, ReportResult, StatusResult } from "@/core/types.ts";
 import { formatDate } from "@/utils/date.ts";
 import { formatDuration } from "@/utils/duration.ts";
-import type {
-  Entry,
-  Project,
-  ReportResult,
-  StatusResult,
-} from "@/core/types.ts";
 
 // ─── Single entry ────────────────────────────────────────────────────
 
@@ -63,9 +58,7 @@ export function formatProject(project: Project): string {
   }
 
   // Line 3: status
-  const status = project.archived
-    ? colorize("yellow", "Archived")
-    : colorize("green", "Active");
+  const status = project.archived ? colorize("yellow", "Archived") : colorize("green", "Active");
   lines.push(`  Status: ${status}`);
 
   return lines.join("\n");
@@ -113,9 +106,10 @@ export function formatEntryTable(
       ? truncate(projectNames?.get(entry.project_id) ?? entry.project_id, COL_PROJECT)
       : colorize("dim", "—");
     const start = formatDate(entry.start_time);
-    const dur = entry.end_time && entry.duration_seconds != null
-      ? formatDuration(entry.duration_seconds)
-      : colorize("yellow", "running");
+    const dur =
+      entry.end_time && entry.duration_seconds != null
+        ? formatDuration(entry.duration_seconds)
+        : colorize("yellow", "running");
     const tags = entry.tags.length > 0 ? entry.tags.join(", ") : colorize("dim", "—");
 
     return [
@@ -141,7 +135,7 @@ export function formatReport(report: ReportResult): string {
   lines.push(colorize("bold", `Report: ${from} → ${to}`));
   lines.push(
     `Total: ${colorize("bold", formatDuration(report.total_seconds))}  |  ` +
-    `Billable: ${colorize("bold", formatDuration(report.billable_seconds))}`,
+      `Billable: ${colorize("bold", formatDuration(report.billable_seconds))}`,
   );
   lines.push("");
 
@@ -171,12 +165,12 @@ export function formatStatus(result: StatusResult): string {
   }
 
   const entry = result.entry;
-  const elapsed = result.elapsed_seconds != null
-    ? formatDuration(result.elapsed_seconds)
-    : "—";
+  const elapsed = result.elapsed_seconds != null ? formatDuration(result.elapsed_seconds) : "—";
 
   const lines: string[] = [];
-  lines.push(`  ${colorize("green", "●")} ${colorize("bold", entry.description || "(no description)")}  ${colorize("yellow", elapsed)}`);
+  lines.push(
+    `  ${colorize("green", "●")} ${colorize("bold", entry.description || "(no description)")}  ${colorize("yellow", elapsed)}`,
+  );
 
   const meta: string[] = [];
   if (entry.project_id) {

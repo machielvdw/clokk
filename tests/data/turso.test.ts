@@ -2,13 +2,9 @@ import { beforeEach, describe, expect, it } from "bun:test";
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 import { migrate } from "drizzle-orm/libsql/migrator";
-import { TursoRepository } from "@/data/turso.ts";
+import { EntryNotFoundError, ProjectHasEntriesError, ProjectNotFoundError } from "@/core/errors.ts";
 import * as schema from "@/data/schema.ts";
-import {
-  EntryNotFoundError,
-  ProjectHasEntriesError,
-  ProjectNotFoundError,
-} from "@/core/errors.ts";
+import { TursoRepository } from "@/data/turso.ts";
 
 let repo: TursoRepository;
 
@@ -139,9 +135,9 @@ describe("entries", () => {
     });
 
     it("throws EntryNotFoundError for nonexistent entry", async () => {
-      expect(
-        repo.updateEntry("ent_nope", { description: "x" }),
-      ).rejects.toBeInstanceOf(EntryNotFoundError);
+      expect(repo.updateEntry("ent_nope", { description: "x" })).rejects.toBeInstanceOf(
+        EntryNotFoundError,
+      );
     });
   });
 
@@ -161,9 +157,7 @@ describe("entries", () => {
     });
 
     it("throws EntryNotFoundError for nonexistent entry", async () => {
-      expect(repo.deleteEntry("ent_nope")).rejects.toBeInstanceOf(
-        EntryNotFoundError,
-      );
+      expect(repo.deleteEntry("ent_nope")).rejects.toBeInstanceOf(EntryNotFoundError);
     });
   });
 
@@ -411,9 +405,9 @@ describe("projects", () => {
     });
 
     it("throws ProjectNotFoundError for nonexistent project", async () => {
-      expect(
-        repo.updateProject("prj_nope", { name: "x" }),
-      ).rejects.toBeInstanceOf(ProjectNotFoundError);
+      expect(repo.updateProject("prj_nope", { name: "x" })).rejects.toBeInstanceOf(
+        ProjectNotFoundError,
+      );
     });
   });
 
@@ -435,9 +429,7 @@ describe("projects", () => {
         start_time: "2026-02-26T09:00:00.000Z",
       });
 
-      expect(repo.deleteProject("prj_1", {})).rejects.toBeInstanceOf(
-        ProjectHasEntriesError,
-      );
+      expect(repo.deleteProject("prj_1", {})).rejects.toBeInstanceOf(ProjectHasEntriesError);
     });
 
     it("force-deletes project and unassigns entries", async () => {
@@ -457,9 +449,7 @@ describe("projects", () => {
     });
 
     it("throws ProjectNotFoundError for nonexistent project", async () => {
-      expect(repo.deleteProject("prj_nope", {})).rejects.toBeInstanceOf(
-        ProjectNotFoundError,
-      );
+      expect(repo.deleteProject("prj_nope", {})).rejects.toBeInstanceOf(ProjectNotFoundError);
     });
   });
 

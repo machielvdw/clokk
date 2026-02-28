@@ -1,8 +1,5 @@
 import type { ClokkConfig } from "@/config.ts";
-import {
-  ConfigKeyUnknownError,
-  ConfigValueInvalidError,
-} from "@/core/errors.ts";
+import { ConfigKeyUnknownError, ConfigValueInvalidError } from "@/core/errors.ts";
 
 const VALID_KEYS: Record<
   string,
@@ -16,31 +13,20 @@ const VALID_KEYS: Record<
     path: ["week_start"],
     validate: (v) =>
       typeof v === "string" &&
-      [
-        "monday",
-        "tuesday",
-        "wednesday",
-        "thursday",
-        "friday",
-        "saturday",
-        "sunday",
-      ].includes(v.toLowerCase()),
+      ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].includes(
+        v.toLowerCase(),
+      ),
   },
   date_format: { type: "string", path: ["date_format"] },
   "turso.url": { type: "string | null", path: ["turso", "url"] },
   "turso.token": { type: "string | null", path: ["turso", "token"] },
 };
 
-export function showConfig(
-  config: ClokkConfig,
-): ClokkConfig {
+export function showConfig(config: ClokkConfig): ClokkConfig {
   return config;
 }
 
-export function getConfigValue(
-  config: ClokkConfig,
-  key: string,
-): { key: string; value: unknown } {
+export function getConfigValue(config: ClokkConfig, key: string): { key: string; value: unknown } {
   const keyDef = VALID_KEYS[key];
   if (!keyDef) throw new ConfigKeyUnknownError(key);
 
@@ -82,11 +68,7 @@ function getNestedValue(obj: ClokkConfig, path: string[]): unknown {
   return current;
 }
 
-function setNestedValue(
-  obj: ClokkConfig,
-  path: string[],
-  value: unknown,
-): void {
+function setNestedValue(obj: ClokkConfig, path: string[], value: unknown): void {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let current: any = obj;
   for (let i = 0; i < path.length - 1; i++) {

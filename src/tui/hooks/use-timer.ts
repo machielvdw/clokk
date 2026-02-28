@@ -1,6 +1,6 @@
 import { createSignal, onCleanup } from "solid-js";
-import type { StatusResult } from "@/core/types.ts";
 import { getStatus } from "@/core/timer.ts";
+import type { StatusResult } from "@/core/types.ts";
 import { useRepo } from "@/tui/hooks/use-repo.ts";
 
 const POLL_INTERVAL_MS = 200;

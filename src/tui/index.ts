@@ -1,5 +1,5 @@
-import { plugin } from "bun";
 import solidPlugin from "@opentui/solid/bun-plugin";
+import { plugin } from "bun";
 
 // Register the SolidJS transform plugin before loading any .tsx files.
 // This uses babel-preset-solid to compile JSX into fine-grained reactive calls

@@ -1,8 +1,8 @@
-import { describe, expect, it } from "bun:test";
 import { Database } from "bun:sqlite";
+import { describe, expect, it } from "bun:test";
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { migrate } from "drizzle-orm/bun-sqlite/migrator";
-import { eq } from "drizzle-orm";
 import * as schema from "@/data/schema.ts";
 
 function createTestDb() {

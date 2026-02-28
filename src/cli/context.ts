@@ -1,7 +1,7 @@
-import type { Repository } from "@/data/repository.ts";
 import type { ClokkConfig } from "@/config.ts";
 import { ensureConfigDir, loadConfig } from "@/config.ts";
 import { createRepository } from "@/data/factory.ts";
+import type { Repository } from "@/data/repository.ts";
 
 export interface ClokkContext {
   repo: Repository;

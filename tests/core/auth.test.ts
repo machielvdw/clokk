@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
+import { getDefaultConfig } from "@/config.ts";
 import { login, logout } from "@/core/auth.ts";
 import { AuthError } from "@/core/errors.ts";
-import { getDefaultConfig } from "@/config.ts";
 
 describe("login", () => {
   it("sets turso credentials in config", () => {
@@ -31,16 +31,12 @@ describe("login", () => {
 
   it("throws AuthError for empty token", () => {
     const config = getDefaultConfig();
-    expect(() =>
-      login(config, { url: "libsql://db.turso.io", token: "" }),
-    ).toThrow(AuthError);
+    expect(() => login(config, { url: "libsql://db.turso.io", token: "" })).toThrow(AuthError);
   });
 
   it("throws AuthError for invalid URL scheme", () => {
     const config = getDefaultConfig();
-    expect(() =>
-      login(config, { url: "ftp://bad.example", token: "tok" }),
-    ).toThrow(AuthError);
+    expect(() => login(config, { url: "ftp://bad.example", token: "tok" })).toThrow(AuthError);
   });
 
   it("error has AUTH_ERROR code", () => {

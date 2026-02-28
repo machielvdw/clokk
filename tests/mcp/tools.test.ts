@@ -1,19 +1,19 @@
-import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { Database } from "bun:sqlite";
-import { drizzle } from "drizzle-orm/bun-sqlite";
-import { migrate } from "drizzle-orm/bun-sqlite/migrator";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { drizzle } from "drizzle-orm/bun-sqlite";
+import { migrate } from "drizzle-orm/bun-sqlite/migrator";
+import { logEntry } from "@/core/entries.ts";
+import { createProject } from "@/core/projects.ts";
+import type { Repository } from "@/data/repository.ts";
 import * as schema from "@/data/schema.ts";
 import { SqliteRepository } from "@/data/sqlite.ts";
-import type { Repository } from "@/data/repository.ts";
-import { registerTimerTools } from "@/mcp/tools/timer.ts";
 import { registerEntryTools } from "@/mcp/tools/entries.ts";
 import { registerProjectTools } from "@/mcp/tools/projects.ts";
 import { registerReportTools } from "@/mcp/tools/reports.ts";
-import { createProject } from "@/core/projects.ts";
-import { logEntry } from "@/core/entries.ts";
+import { registerTimerTools } from "@/mcp/tools/timer.ts";
 
 function createRepo(): Repository {
   const sqlite = new Database(":memory:");

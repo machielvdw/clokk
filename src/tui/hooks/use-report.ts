@@ -1,8 +1,8 @@
-import { createSignal, createEffect } from "solid-js";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc.js";
-import type { ReportResult, ReportFilters } from "@/core/types.ts";
+import { createEffect, createSignal } from "solid-js";
 import { generateReport } from "@/core/reports.ts";
+import type { ReportFilters, ReportResult } from "@/core/types.ts";
 import { useRepo } from "@/tui/hooks/use-repo.ts";
 
 dayjs.extend(utc);
@@ -14,9 +14,7 @@ export function useReport() {
   const [report, setReport] = createSignal<ReportResult | null>(null);
   const [period, setPeriod] = createSignal<RangePeriod>("week");
   const [offset, setOffset] = createSignal(0);
-  const [groupBy, setGroupBy] = createSignal<
-    NonNullable<ReportFilters["group_by"]>
-  >("project");
+  const [groupBy, setGroupBy] = createSignal<NonNullable<ReportFilters["group_by"]>>("project");
   const [loading, setLoading] = createSignal(false);
 
   function getDateRange(): { from: string; to: string } {

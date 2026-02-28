@@ -40,9 +40,12 @@ function parseJson(stdout: string) {
 describe("clokk log", () => {
   it("logs an entry with --to", () => {
     const r = runClokk([
-      "log", "Retrospective",
-      "--from", "2025-01-15T09:00:00Z",
-      "--to", "2025-01-15T10:00:00Z",
+      "log",
+      "Retrospective",
+      "--from",
+      "2025-01-15T09:00:00Z",
+      "--to",
+      "2025-01-15T10:00:00Z",
       "--json",
     ]);
     expect(r.exitCode).toBe(0);
@@ -55,9 +58,12 @@ describe("clokk log", () => {
 
   it("logs an entry with --duration", () => {
     const r = runClokk([
-      "log", "Code review",
-      "--from", "2025-01-15T14:00:00Z",
-      "--duration", "1h30m",
+      "log",
+      "Code review",
+      "--from",
+      "2025-01-15T14:00:00Z",
+      "--duration",
+      "1h30m",
       "--json",
     ]);
     expect(r.exitCode).toBe(0);
@@ -67,10 +73,14 @@ describe("clokk log", () => {
 
   it("logs an entry with tags and billable", () => {
     const r = runClokk([
-      "log", "Client call",
-      "--from", "2025-01-15T11:00:00Z",
-      "--to", "2025-01-15T12:00:00Z",
-      "--tags", "meeting,client",
+      "log",
+      "Client call",
+      "--from",
+      "2025-01-15T11:00:00Z",
+      "--to",
+      "2025-01-15T12:00:00Z",
+      "--tags",
+      "meeting,client",
       "--billable",
       "--json",
     ]);
@@ -82,10 +92,14 @@ describe("clokk log", () => {
 
   it("fails with both --to and --duration", () => {
     const r = runClokk([
-      "log", "Bad entry",
-      "--from", "2025-01-15T09:00:00Z",
-      "--to", "2025-01-15T10:00:00Z",
-      "--duration", "1h",
+      "log",
+      "Bad entry",
+      "--from",
+      "2025-01-15T09:00:00Z",
+      "--to",
+      "2025-01-15T10:00:00Z",
+      "--duration",
+      "1h",
       "--json",
     ]);
     expect(r.exitCode).not.toBe(0);
@@ -101,9 +115,12 @@ describe("clokk edit", () => {
     // First log an entry to edit
     const logResult = parseJson(
       runClokk([
-        "log", "Original",
-        "--from", "2025-01-16T09:00:00Z",
-        "--to", "2025-01-16T10:00:00Z",
+        "log",
+        "Original",
+        "--from",
+        "2025-01-16T09:00:00Z",
+        "--to",
+        "2025-01-16T10:00:00Z",
         "--json",
       ]).stdout,
     );
@@ -118,9 +135,12 @@ describe("clokk edit", () => {
   it("edits entry tags", () => {
     const logResult = parseJson(
       runClokk([
-        "log", "Tag me",
-        "--from", "2025-01-16T11:00:00Z",
-        "--to", "2025-01-16T12:00:00Z",
+        "log",
+        "Tag me",
+        "--from",
+        "2025-01-16T11:00:00Z",
+        "--to",
+        "2025-01-16T12:00:00Z",
         "--json",
       ]).stdout,
     );
@@ -146,9 +166,12 @@ describe("clokk delete", () => {
   it("deletes an entry (auto-confirmed in non-TTY)", () => {
     const logResult = parseJson(
       runClokk([
-        "log", "Delete me",
-        "--from", "2025-01-17T09:00:00Z",
-        "--to", "2025-01-17T10:00:00Z",
+        "log",
+        "Delete me",
+        "--from",
+        "2025-01-17T09:00:00Z",
+        "--to",
+        "2025-01-17T10:00:00Z",
         "--json",
       ]).stdout,
     );
@@ -192,10 +215,14 @@ describe("clokk list", () => {
     // Create project and log an entry for it
     runClokk(["project", "create", "FilterProject", "--json"]);
     runClokk([
-      "log", "Filtered",
-      "--from", "2025-01-18T09:00:00Z",
-      "--to", "2025-01-18T10:00:00Z",
-      "--project", "FilterProject",
+      "log",
+      "Filtered",
+      "--from",
+      "2025-01-18T09:00:00Z",
+      "--to",
+      "2025-01-18T10:00:00Z",
+      "--project",
+      "FilterProject",
       "--json",
     ]);
 

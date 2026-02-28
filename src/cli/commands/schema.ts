@@ -1,4 +1,4 @@
-import type { CommandDef, ArgsDef, SubCommandsDef } from "citty";
+import type { ArgsDef, CommandDef, SubCommandsDef } from "citty";
 import { defineCommand } from "citty";
 import { main } from "@/cli/index.ts";
 
@@ -9,9 +9,7 @@ interface SchemaCommand {
   subCommands?: SchemaCommand[];
 }
 
-async function buildSchema(
-  cmd: CommandDef<ArgsDef>,
-): Promise<SchemaCommand> {
+async function buildSchema(cmd: CommandDef<ArgsDef>): Promise<SchemaCommand> {
   const meta = typeof cmd.meta === "function" ? await cmd.meta() : (cmd.meta ?? {});
   const args = typeof cmd.args === "function" ? await cmd.args() : (cmd.args ?? {});
   const schema: SchemaCommand = {
@@ -20,17 +18,14 @@ async function buildSchema(
     args: args as Record<string, unknown>,
   };
 
-  const rawSubs = typeof cmd.subCommands === "function"
-    ? await cmd.subCommands()
-    : cmd.subCommands;
+  const rawSubs = typeof cmd.subCommands === "function" ? await cmd.subCommands() : cmd.subCommands;
   const subCommands = rawSubs as SubCommandsDef | undefined;
 
   if (subCommands && Object.keys(subCommands).length > 0) {
     schema.subCommands = [];
     for (const [, sub] of Object.entries(subCommands)) {
-      const resolved = typeof sub === "function"
-        ? await (sub as () => Promise<CommandDef<ArgsDef>>)()
-        : sub;
+      const resolved =
+        typeof sub === "function" ? await (sub as () => Promise<CommandDef<ArgsDef>>)() : sub;
       if (resolved) {
         schema.subCommands.push(await buildSchema(resolved as CommandDef<ArgsDef>));
       }

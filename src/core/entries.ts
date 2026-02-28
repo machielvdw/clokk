@@ -1,7 +1,6 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc.js";
-
-import type { Repository } from "@/data/repository.ts";
+import { EntryNotFoundError, ProjectNotFoundError, ValidationError } from "@/core/errors.ts";
 import type {
   Entry,
   EntryFilters,
@@ -9,23 +8,14 @@ import type {
   ListEntriesResult,
   LogEntryInput,
 } from "@/core/types.ts";
-import {
-  EntryNotFoundError,
-  ProjectNotFoundError,
-  ValidationError,
-} from "@/core/errors.ts";
+import type { Repository } from "@/data/repository.ts";
 import { generateEntryId } from "@/utils/id.ts";
 
 dayjs.extend(utc);
 
-export async function logEntry(
-  repo: Repository,
-  input: LogEntryInput,
-): Promise<Entry> {
+export async function logEntry(repo: Repository, input: LogEntryInput): Promise<Entry> {
   if (input.to && input.duration !== undefined) {
-    throw new ValidationError(
-      "--to and --duration are mutually exclusive. Use one or the other.",
-    );
+    throw new ValidationError("--to and --duration are mutually exclusive. Use one or the other.");
   }
 
   if (!input.to && input.duration === undefined) {
@@ -36,10 +26,7 @@ export async function logEntry(
   if (input.to) {
     endTime = input.to;
   } else {
-    endTime = dayjs
-      .utc(input.from)
-      .add(input.duration!, "second")
-      .toISOString();
+    endTime = dayjs.utc(input.from).add(input.duration!, "second").toISOString();
   }
 
   if (!dayjs.utc(endTime).isAfter(dayjs.utc(input.from))) {
@@ -85,10 +72,8 @@ export async function editEntry(
 
   const repoUpdates: EntryUpdates = {};
 
-  if (updates.description !== undefined)
-    repoUpdates.description = updates.description;
-  if (updates.start_time !== undefined)
-    repoUpdates.start_time = updates.start_time;
+  if (updates.description !== undefined) repoUpdates.description = updates.description;
+  if (updates.start_time !== undefined) repoUpdates.start_time = updates.start_time;
   if (updates.end_time !== undefined) repoUpdates.end_time = updates.end_time;
   if (updates.tags !== undefined) repoUpdates.tags = updates.tags;
   if (updates.billable !== undefined) repoUpdates.billable = updates.billable;
@@ -105,8 +90,7 @@ export async function editEntry(
 
   // Validate time range if either time was changed
   const startTime = updates.start_time ?? entry.start_time;
-  const endTime =
-    updates.end_time !== undefined ? updates.end_time : entry.end_time;
+  const endTime = updates.end_time !== undefined ? updates.end_time : entry.end_time;
   if (endTime && !dayjs.utc(endTime).isAfter(dayjs.utc(startTime))) {
     throw new ValidationError("End time must be after start time.", {
       start_time: startTime,
@@ -117,10 +101,7 @@ export async function editEntry(
   return repo.updateEntry(id, repoUpdates);
 }
 
-export async function deleteEntry(
-  repo: Repository,
-  id: string,
-): Promise<Entry> {
+export async function deleteEntry(repo: Repository, id: string): Promise<Entry> {
   const entry = await repo.getEntry(id);
   if (!entry) throw new EntryNotFoundError(id);
   return repo.deleteEntry(id);

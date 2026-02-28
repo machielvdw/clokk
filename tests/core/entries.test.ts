@@ -1,21 +1,12 @@
-import { beforeEach, describe, expect, it } from "bun:test";
 import { Database } from "bun:sqlite";
+import { beforeEach, describe, expect, it } from "bun:test";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { migrate } from "drizzle-orm/bun-sqlite/migrator";
-import { SqliteRepository } from "@/data/sqlite.ts";
-import * as schema from "@/data/schema.ts";
+import { deleteEntry, editEntry, listEntries, logEntry } from "@/core/entries.ts";
+import { EntryNotFoundError, ProjectNotFoundError, ValidationError } from "@/core/errors.ts";
 import type { Repository } from "@/data/repository.ts";
-import {
-  logEntry,
-  editEntry,
-  deleteEntry,
-  listEntries,
-} from "@/core/entries.ts";
-import {
-  EntryNotFoundError,
-  ProjectNotFoundError,
-  ValidationError,
-} from "@/core/errors.ts";
+import * as schema from "@/data/schema.ts";
+import { SqliteRepository } from "@/data/sqlite.ts";
 
 let repo: Repository;
 
@@ -89,9 +80,9 @@ describe("logEntry", () => {
   });
 
   it("throws when neither --to nor --duration provided", async () => {
-    expect(
-      logEntry(repo, { from: "2026-02-26T09:00:00.000Z" }),
-    ).rejects.toBeInstanceOf(ValidationError);
+    expect(logEntry(repo, { from: "2026-02-26T09:00:00.000Z" })).rejects.toBeInstanceOf(
+      ValidationError,
+    );
   });
 
   it("throws when end time is before start time", async () => {
@@ -201,9 +192,9 @@ describe("editEntry", () => {
   });
 
   it("throws EntryNotFoundError for nonexistent entry", async () => {
-    expect(
-      editEntry(repo, "ent_nonexistent", { description: "Updated" }),
-    ).rejects.toBeInstanceOf(EntryNotFoundError);
+    expect(editEntry(repo, "ent_nonexistent", { description: "Updated" })).rejects.toBeInstanceOf(
+      EntryNotFoundError,
+    );
   });
 
   it("throws ProjectNotFoundError for nonexistent project", async () => {
@@ -211,9 +202,9 @@ describe("editEntry", () => {
       from: "2026-02-26T09:00:00.000Z",
       to: "2026-02-26T10:00:00.000Z",
     });
-    expect(
-      editEntry(repo, entry.id, { project: "nonexistent" }),
-    ).rejects.toBeInstanceOf(ProjectNotFoundError);
+    expect(editEntry(repo, entry.id, { project: "nonexistent" })).rejects.toBeInstanceOf(
+      ProjectNotFoundError,
+    );
   });
 });
 
@@ -235,9 +226,7 @@ describe("deleteEntry", () => {
   });
 
   it("throws EntryNotFoundError for nonexistent entry", async () => {
-    expect(deleteEntry(repo, "ent_nonexistent")).rejects.toBeInstanceOf(
-      EntryNotFoundError,
-    );
+    expect(deleteEntry(repo, "ent_nonexistent")).rejects.toBeInstanceOf(EntryNotFoundError);
   });
 });
 

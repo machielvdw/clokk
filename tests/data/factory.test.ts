@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it } from "bun:test";
 import { existsSync, mkdirSync, rmSync } from "node:fs";
-import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { getDefaultConfig } from "@/config.ts";
 import { createRepository } from "@/data/factory.ts";
-import { ensureConfigDir, getDefaultConfig, loadConfig } from "@/config.ts";
 
 const TEST_DIR = join(tmpdir(), `clokk-factory-test-${Date.now()}`);
 

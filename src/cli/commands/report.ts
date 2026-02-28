@@ -1,9 +1,9 @@
 import { defineCommand } from "citty";
 import { getContext } from "@/cli/context.ts";
-import { generateReport } from "@/core/reports.ts";
-import { success } from "@/cli/output.ts";
 import { formatReport } from "@/cli/format.ts";
+import { success } from "@/cli/output.ts";
 import { parseTags, resolveDateShortcuts } from "@/cli/parse.ts";
+import { generateReport } from "@/core/reports.ts";
 import type { ReportFilters, ReportResult } from "@/core/types.ts";
 
 export default defineCommand({
@@ -56,7 +56,8 @@ export default defineCommand({
     const { repo, config } = await getContext();
 
     // Default to --week when no date range given
-    const hasDateArg = args.today || args.yesterday || args.week || args.month || args.from || args.to;
+    const hasDateArg =
+      args.today || args.yesterday || args.week || args.month || args.from || args.to;
     const dateArgs = hasDateArg ? args : { ...args, week: true };
     const dateRange = resolveDateShortcuts(dateArgs, {
       weekStart: config.week_start,

@@ -1,22 +1,22 @@
-import { beforeEach, describe, expect, it } from "bun:test";
 import { Database } from "bun:sqlite";
+import { beforeEach, describe, expect, it } from "bun:test";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { migrate } from "drizzle-orm/bun-sqlite/migrator";
-import { SqliteRepository } from "@/data/sqlite.ts";
-import * as schema from "@/data/schema.ts";
-import type { Repository } from "@/data/repository.ts";
-import {
-  createProject,
-  editProject,
-  archiveProject,
-  deleteProject,
-  listProjects,
-} from "@/core/projects.ts";
 import {
   ProjectAlreadyExistsError,
-  ProjectNotFoundError,
   ProjectHasEntriesError,
+  ProjectNotFoundError,
 } from "@/core/errors.ts";
+import {
+  archiveProject,
+  createProject,
+  deleteProject,
+  editProject,
+  listProjects,
+} from "@/core/projects.ts";
+import type { Repository } from "@/data/repository.ts";
+import * as schema from "@/data/schema.ts";
+import { SqliteRepository } from "@/data/sqlite.ts";
 
 let repo: Repository;
 
@@ -58,9 +58,7 @@ describe("createProject", () => {
 
   it("throws ProjectAlreadyExistsError for duplicate name", async () => {
     await createProject(repo, { name: "Acme" });
-    expect(createProject(repo, { name: "Acme" })).rejects.toBeInstanceOf(
-      ProjectAlreadyExistsError,
-    );
+    expect(createProject(repo, { name: "Acme" })).rejects.toBeInstanceOf(ProjectAlreadyExistsError);
   });
 });
 
@@ -96,9 +94,9 @@ describe("editProject", () => {
   it("throws ProjectAlreadyExistsError when renaming to existing name", async () => {
     await createProject(repo, { name: "Acme" });
     await createProject(repo, { name: "Beta" });
-    expect(
-      editProject(repo, "Acme", { name: "Beta" }),
-    ).rejects.toBeInstanceOf(ProjectAlreadyExistsError);
+    expect(editProject(repo, "Acme", { name: "Beta" })).rejects.toBeInstanceOf(
+      ProjectAlreadyExistsError,
+    );
   });
 
   it("allows renaming to the same name (no-op)", async () => {
@@ -108,9 +106,9 @@ describe("editProject", () => {
   });
 
   it("throws ProjectNotFoundError for nonexistent project", async () => {
-    expect(
-      editProject(repo, "nonexistent", { client: "New" }),
-    ).rejects.toBeInstanceOf(ProjectNotFoundError);
+    expect(editProject(repo, "nonexistent", { client: "New" })).rejects.toBeInstanceOf(
+      ProjectNotFoundError,
+    );
   });
 });
 
@@ -130,9 +128,7 @@ describe("archiveProject", () => {
   });
 
   it("throws ProjectNotFoundError for nonexistent project", async () => {
-    expect(archiveProject(repo, "nonexistent")).rejects.toBeInstanceOf(
-      ProjectNotFoundError,
-    );
+    expect(archiveProject(repo, "nonexistent")).rejects.toBeInstanceOf(ProjectNotFoundError);
   });
 });
 
@@ -156,9 +152,7 @@ describe("deleteProject", () => {
       start_time: "2026-02-26T09:00:00.000Z",
       end_time: "2026-02-26T10:00:00.000Z",
     });
-    expect(deleteProject(repo, "Acme")).rejects.toBeInstanceOf(
-      ProjectHasEntriesError,
-    );
+    expect(deleteProject(repo, "Acme")).rejects.toBeInstanceOf(ProjectHasEntriesError);
   });
 
   it("force deletes and unassigns entries", async () => {
@@ -176,9 +170,7 @@ describe("deleteProject", () => {
   });
 
   it("throws ProjectNotFoundError for nonexistent project", async () => {
-    expect(deleteProject(repo, "nonexistent")).rejects.toBeInstanceOf(
-      ProjectNotFoundError,
-    );
+    expect(deleteProject(repo, "nonexistent")).rejects.toBeInstanceOf(ProjectNotFoundError);
   });
 });
 

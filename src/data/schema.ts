@@ -1,5 +1,5 @@
-import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
+import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const projects = sqliteTable(
   "projects",
@@ -11,16 +11,10 @@ export const projects = sqliteTable(
     rate: real("rate"),
     currency: text("currency").default("USD").notNull(),
     archived: integer("archived").default(0).notNull(),
-    created_at: text("created_at")
-      .default(sql`(datetime('now'))`)
-      .notNull(),
-    updated_at: text("updated_at")
-      .default(sql`(datetime('now'))`)
-      .notNull(),
+    created_at: text("created_at").default(sql`(datetime('now'))`).notNull(),
+    updated_at: text("updated_at").default(sql`(datetime('now'))`).notNull(),
   },
-  (table) => [
-    uniqueIndex("idx_projects_name").on(table.name),
-  ],
+  (table) => [uniqueIndex("idx_projects_name").on(table.name)],
 );
 
 export const entries = sqliteTable(
@@ -35,12 +29,8 @@ export const entries = sqliteTable(
     end_time: text("end_time"),
     tags: text("tags").default("[]").notNull(),
     billable: integer("billable").default(1).notNull(),
-    created_at: text("created_at")
-      .default(sql`(datetime('now'))`)
-      .notNull(),
-    updated_at: text("updated_at")
-      .default(sql`(datetime('now'))`)
-      .notNull(),
+    created_at: text("created_at").default(sql`(datetime('now'))`).notNull(),
+    updated_at: text("updated_at").default(sql`(datetime('now'))`).notNull(),
   },
   (table) => [
     index("idx_entries_start").on(table.start_time),

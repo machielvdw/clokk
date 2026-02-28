@@ -1,10 +1,7 @@
 import type { Client } from "@libsql/client";
-import { type LibSQLDatabase, drizzle } from "drizzle-orm/libsql";
 import { and, count, desc, eq, isNull } from "drizzle-orm";
-
-import type { SyncResult, SyncableRepository } from "@/data/repository.ts";
-import * as schema from "@/data/schema.ts";
-import { entries, projects } from "@/data/schema.ts";
+import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
+import { EntryNotFoundError, ProjectHasEntriesError, ProjectNotFoundError } from "@/core/errors.ts";
 import type {
   Entry,
   EntryFilters,
@@ -16,18 +13,11 @@ import type {
   ProjectUpdates,
   ReportFilters,
 } from "@/core/types.ts";
-import {
-  EntryNotFoundError,
-  ProjectHasEntriesError,
-  ProjectNotFoundError,
-} from "@/core/errors.ts";
+import { buildEntryConditions, nowISO, toEntry, toProject } from "@/data/mappers.ts";
+import type { SyncableRepository, SyncResult } from "@/data/repository.ts";
+import * as schema from "@/data/schema.ts";
+import { entries, projects } from "@/data/schema.ts";
 import { isProjectId } from "@/utils/id.ts";
-import {
-  buildEntryConditions,
-  nowISO,
-  toEntry,
-  toProject,
-} from "@/data/mappers.ts";
 
 export class TursoRepository implements SyncableRepository {
   private db: LibSQLDatabase<typeof schema>;
@@ -71,20 +61,12 @@ export class TursoRepository implements SyncableRepository {
   }
 
   async getEntry(id: string): Promise<Entry | null> {
-    const row = await this.db
-      .select()
-      .from(entries)
-      .where(eq(entries.id, id))
-      .get();
+    const row = await this.db.select().from(entries).where(eq(entries.id, id)).get();
     return row ? toEntry(row) : null;
   }
 
   async updateEntry(id: string, updates: EntryUpdates): Promise<Entry> {
-    const existing = await this.db
-      .select()
-      .from(entries)
-      .where(eq(entries.id, id))
-      .get();
+    const existing = await this.db.select().from(entries).where(eq(entries.id, id)).get();
     if (!existing) throw new EntryNotFoundError(id);
 
     const values: Record<string, unknown> = { updated_at: nowISO() };
@@ -100,11 +82,7 @@ export class TursoRepository implements SyncableRepository {
   }
 
   async deleteEntry(id: string): Promise<Entry> {
-    const existing = await this.db
-      .select()
-      .from(entries)
-      .where(eq(entries.id, id))
-      .get();
+    const existing = await this.db.select().from(entries).where(eq(entries.id, id)).get();
     if (!existing) throw new EntryNotFoundError(id);
 
     const entry = toEntry(existing);
@@ -112,9 +90,7 @@ export class TursoRepository implements SyncableRepository {
     return entry;
   }
 
-  async listEntries(
-    filters: EntryFilters,
-  ): Promise<{ entries: Entry[]; total: number }> {
+  async listEntries(filters: EntryFilters): Promise<{ entries: Entry[]; total: number }> {
     const conditions = buildEntryConditions(filters);
     const limit = filters.limit ?? 50;
     const offset = filters.offset ?? 0;
@@ -141,11 +117,7 @@ export class TursoRepository implements SyncableRepository {
   }
 
   async getRunningEntry(): Promise<Entry | null> {
-    const row = await this.db
-      .select()
-      .from(entries)
-      .where(isNull(entries.end_time))
-      .get();
+    const row = await this.db.select().from(entries).where(isNull(entries.end_time)).get();
     return row ? toEntry(row) : null;
   }
 
@@ -174,11 +146,7 @@ export class TursoRepository implements SyncableRepository {
   }
 
   async updateProject(id: string, updates: ProjectUpdates): Promise<Project> {
-    const existing = await this.db
-      .select()
-      .from(projects)
-      .where(eq(projects.id, id))
-      .get();
+    const existing = await this.db.select().from(projects).where(eq(projects.id, id)).get();
     if (!existing) throw new ProjectNotFoundError(id);
 
     const values: Record<string, unknown> = { updated_at: nowISO() };
@@ -193,15 +161,8 @@ export class TursoRepository implements SyncableRepository {
     return this.getProjectOrThrow(id);
   }
 
-  async deleteProject(
-    id: string,
-    opts: { force?: boolean } = {},
-  ): Promise<Project> {
-    const existing = await this.db
-      .select()
-      .from(projects)
-      .where(eq(projects.id, id))
-      .get();
+  async deleteProject(id: string, opts: { force?: boolean } = {}): Promise<Project> {
+    const existing = await this.db.select().from(projects).where(eq(projects.id, id)).get();
     if (!existing) throw new ProjectNotFoundError(id);
 
     const project = toProject(existing);
@@ -230,9 +191,7 @@ export class TursoRepository implements SyncableRepository {
   }
 
   async listProjects(filters: ProjectFilters = {}): Promise<Project[]> {
-    const condition = filters.include_archived
-      ? undefined
-      : eq(projects.archived, 0);
+    const condition = filters.include_archived ? undefined : eq(projects.archived, 0);
 
     const rows = await this.db
       .select()

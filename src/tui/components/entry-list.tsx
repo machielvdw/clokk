@@ -1,8 +1,8 @@
-import { For, Show } from "solid-js";
 import type { Accessor } from "solid-js";
+import { For, Show } from "solid-js";
 import type { Entry } from "@/core/types.ts";
-import { formatDuration } from "@/utils/duration.ts";
 import { formatDate } from "@/utils/date.ts";
+import { formatDuration } from "@/utils/duration.ts";
 
 interface EntryListProps {
   entries: Accessor<Entry[]>;
@@ -16,8 +16,7 @@ interface EntryListProps {
 
 export function EntryList(props: EntryListProps) {
   const rangeStart = () => props.page() * props.pageSize + 1;
-  const rangeEnd = () =>
-    Math.min((props.page() + 1) * props.pageSize, props.total());
+  const rangeEnd = () => Math.min((props.page() + 1) * props.pageSize, props.total());
 
   return (
     <box
@@ -52,9 +51,7 @@ export function EntryList(props: EntryListProps) {
             <EntryRow
               entry={entry}
               projectName={
-                entry.project_id
-                  ? (props.projectNames().get(entry.project_id) ?? null)
-                  : null
+                entry.project_id ? (props.projectNames().get(entry.project_id) ?? null) : null
               }
               selected={index() === props.selectedIndex()}
             />
@@ -103,16 +100,8 @@ function EntryRow(props: EntryRowProps) {
   };
 
   return (
-    <box
-      flexDirection="row"
-      paddingX={1}
-      backgroundColor={props.selected ? "#1e3a5f" : undefined}
-    >
-      <text
-        width={30}
-        fg={props.selected ? "#ffffff" : undefined}
-        truncate={true}
-      >
+    <box flexDirection="row" paddingX={1} backgroundColor={props.selected ? "#1e3a5f" : undefined}>
+      <text width={30} fg={props.selected ? "#ffffff" : undefined} truncate={true}>
         {desc()}
       </text>
       <text width={14} fg={props.projectName ? "#06b6d4" : "#6b7280"}>

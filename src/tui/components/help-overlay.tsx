@@ -1,5 +1,5 @@
-import { Show } from "solid-js";
 import type { Accessor } from "solid-js";
+import { Show } from "solid-js";
 
 interface HelpOverlayProps {
   visible: Accessor<boolean>;

@@ -1,27 +1,20 @@
-import { createSignal, Show } from "solid-js";
-import { useKeyboard } from "@opentui/solid";
 import type { KeyEvent } from "@opentui/core";
+import { useKeyboard } from "@opentui/solid";
+import { createSignal, Show } from "solid-js";
 import { ClokkError } from "@/core/errors.ts";
-import {
-  startTimer,
-  stopTimer,
-  resumeTimer,
-  switchTimer,
-  cancelTimer,
-} from "@/core/timer.ts";
+import { cancelTimer, resumeTimer, startTimer, stopTimer, switchTimer } from "@/core/timer.ts";
 import type { Project } from "@/core/types.ts";
-import { useRepo } from "@/tui/hooks/use-repo.ts";
-import { useTimer } from "@/tui/hooks/use-timer.ts";
-import { useEntries } from "@/tui/hooks/use-entries.ts";
-import { useReport } from "@/tui/hooks/use-report.ts";
-import type { RangePeriod } from "@/tui/hooks/use-report.ts";
-import { Timer } from "@/tui/components/timer.tsx";
 import { EntryList } from "@/tui/components/entry-list.tsx";
-import { ReportView } from "@/tui/components/report-view.tsx";
+import { HelpOverlay } from "@/tui/components/help-overlay.tsx";
 import { InputModal } from "@/tui/components/input-modal.tsx";
 import { ProjectPicker } from "@/tui/components/project-picker.tsx";
-import { HelpOverlay } from "@/tui/components/help-overlay.tsx";
+import { ReportView } from "@/tui/components/report-view.tsx";
 import { StatusBar } from "@/tui/components/status-bar.tsx";
+import { Timer } from "@/tui/components/timer.tsx";
+import { useEntries } from "@/tui/hooks/use-entries.ts";
+import { useRepo } from "@/tui/hooks/use-repo.ts";
+import { useReport } from "@/tui/hooks/use-report.ts";
+import { useTimer } from "@/tui/hooks/use-timer.ts";
 
 // Modal state machine:
 //   none → start-desc → start-project → (startTimer) → none
@@ -59,12 +52,8 @@ export function App() {
     getDateRange,
   } = useReport();
 
-  const [activeView, setActiveView] = createSignal<"timer" | "report">(
-    "timer",
-  );
-  const [focusedPane, setFocusedPane] = createSignal<"timer" | "entries">(
-    "timer",
-  );
+  const [activeView, setActiveView] = createSignal<"timer" | "report">("timer");
+  const [focusedPane, setFocusedPane] = createSignal<"timer" | "entries">("timer");
   const [selectedIndex, setSelectedIndex] = createSignal(0);
   const [modal, setModal] = createSignal<ModalState>({ mode: "none" });
   const [helpVisible, setHelpVisible] = createSignal(false);
@@ -258,8 +247,7 @@ export function App() {
     return m === "start-project" || m === "switch-project";
   };
 
-  const inputModalTitle = () =>
-    modal().mode === "start-desc" ? "Start timer" : "Switch to";
+  const inputModalTitle = () => (modal().mode === "start-desc" ? "Start timer" : "Switch to");
 
   return (
     <box flexDirection="column" width="100%" height="100%">

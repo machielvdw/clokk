@@ -16,18 +16,26 @@ beforeAll(() => {
       env: { ...process.env, CLOKK_DIR: tmpDir },
     });
   run([
-    "log", "Morning work",
-    "--from", new Date(Date.now() - 3600 * 1000 * 3).toISOString(),
-    "--to", new Date(Date.now() - 3600 * 1000 * 2).toISOString(),
-    "--tags", "dev",
+    "log",
+    "Morning work",
+    "--from",
+    new Date(Date.now() - 3600 * 1000 * 3).toISOString(),
+    "--to",
+    new Date(Date.now() - 3600 * 1000 * 2).toISOString(),
+    "--tags",
+    "dev",
     "--billable",
     "--json",
   ]);
   run([
-    "log", "Afternoon work",
-    "--from", new Date(Date.now() - 3600 * 1000 * 2).toISOString(),
-    "--to", new Date(Date.now() - 3600 * 1000).toISOString(),
-    "--tags", "review",
+    "log",
+    "Afternoon work",
+    "--from",
+    new Date(Date.now() - 3600 * 1000 * 2).toISOString(),
+    "--to",
+    new Date(Date.now() - 3600 * 1000).toISOString(),
+    "--tags",
+    "review",
     "--json",
   ]);
 });

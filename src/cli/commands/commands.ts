@@ -34,9 +34,7 @@ export default defineCommand({
   async run() {
     success(COMMANDS, `${COMMANDS.length} commands available.`, () => {
       const maxLen = Math.max(...COMMANDS.map((c) => c.name.length));
-      return COMMANDS.map(
-        (c) => `  ${c.name.padEnd(maxLen)}  ${c.description}`,
-      ).join("\n");
+      return COMMANDS.map((c) => `  ${c.name.padEnd(maxLen)}  ${c.description}`).join("\n");
     });
   },
 });

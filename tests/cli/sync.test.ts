@@ -53,9 +53,12 @@ describe("clokk sync", () => {
 describe("clokk auth login", () => {
   it("sets turso credentials and returns url", () => {
     const r = runClokk([
-      "auth", "login",
-      "--url", "libsql://test.turso.io",
-      "--token", "tok123",
+      "auth",
+      "login",
+      "--url",
+      "libsql://test.turso.io",
+      "--token",
+      "tok123",
       "--json",
     ]);
     expect(r.exitCode).toBe(0);
@@ -65,12 +68,7 @@ describe("clokk auth login", () => {
   });
 
   it("persists credentials to config file", () => {
-    runClokk([
-      "auth", "login",
-      "--url", "libsql://test.turso.io",
-      "--token", "tok123",
-      "--json",
-    ]);
+    runClokk(["auth", "login", "--url", "libsql://test.turso.io", "--token", "tok123", "--json"]);
 
     // Read config file directly (not via `clokk config get` which would
     // trigger TursoRepository creation with the non-existent URL)

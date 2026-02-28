@@ -1,10 +1,7 @@
-import { type BunSQLiteDatabase, drizzle } from "drizzle-orm/bun-sqlite";
-import { and, count, desc, eq, isNull } from "drizzle-orm";
 import type { Database } from "bun:sqlite";
-
-import type { Repository } from "@/data/repository.ts";
-import * as schema from "@/data/schema.ts";
-import { entries, projects } from "@/data/schema.ts";
+import { and, count, desc, eq, isNull } from "drizzle-orm";
+import { type BunSQLiteDatabase, drizzle } from "drizzle-orm/bun-sqlite";
+import { EntryNotFoundError, ProjectHasEntriesError, ProjectNotFoundError } from "@/core/errors.ts";
 import type {
   Entry,
   EntryFilters,
@@ -16,18 +13,11 @@ import type {
   ProjectUpdates,
   ReportFilters,
 } from "@/core/types.ts";
-import {
-  EntryNotFoundError,
-  ProjectHasEntriesError,
-  ProjectNotFoundError,
-} from "@/core/errors.ts";
+import { buildEntryConditions, nowISO, toEntry, toProject } from "@/data/mappers.ts";
+import type { Repository } from "@/data/repository.ts";
+import * as schema from "@/data/schema.ts";
+import { entries, projects } from "@/data/schema.ts";
 import { isProjectId } from "@/utils/id.ts";
-import {
-  buildEntryConditions,
-  nowISO,
-  toEntry,
-  toProject,
-} from "@/data/mappers.ts";
 
 export class SqliteRepository implements Repository {
   private db: BunSQLiteDatabase<typeof schema>;
@@ -53,11 +43,7 @@ export class SqliteRepository implements Repository {
   }
 
   async getEntry(id: string): Promise<Entry | null> {
-    const row = this.db
-      .select()
-      .from(entries)
-      .where(eq(entries.id, id))
-      .get();
+    const row = this.db.select().from(entries).where(eq(entries.id, id)).get();
     return row ? toEntry(row) : null;
   }
 
@@ -86,9 +72,7 @@ export class SqliteRepository implements Repository {
     return entry;
   }
 
-  async listEntries(
-    filters: EntryFilters,
-  ): Promise<{ entries: Entry[]; total: number }> {
+  async listEntries(filters: EntryFilters): Promise<{ entries: Entry[]; total: number }> {
     const conditions = buildEntryConditions(filters);
     const limit = filters.limit ?? 50;
     const offset = filters.offset ?? 0;
@@ -115,11 +99,7 @@ export class SqliteRepository implements Repository {
   }
 
   async getRunningEntry(): Promise<Entry | null> {
-    const row = this.db
-      .select()
-      .from(entries)
-      .where(isNull(entries.end_time))
-      .get();
+    const row = this.db.select().from(entries).where(isNull(entries.end_time)).get();
     return row ? toEntry(row) : null;
   }
 
@@ -163,10 +143,7 @@ export class SqliteRepository implements Repository {
     return this.getProjectOrThrow(id);
   }
 
-  async deleteProject(
-    id: string,
-    opts: { force?: boolean } = {},
-  ): Promise<Project> {
+  async deleteProject(id: string, opts: { force?: boolean } = {}): Promise<Project> {
     const existing = this.db.select().from(projects).where(eq(projects.id, id)).get();
     if (!existing) throw new ProjectNotFoundError(id);
 
@@ -198,16 +175,9 @@ export class SqliteRepository implements Repository {
   }
 
   async listProjects(filters: ProjectFilters = {}): Promise<Project[]> {
-    const condition = filters.include_archived
-      ? undefined
-      : eq(projects.archived, 0);
+    const condition = filters.include_archived ? undefined : eq(projects.archived, 0);
 
-    const rows = this.db
-      .select()
-      .from(projects)
-      .where(condition)
-      .orderBy(projects.name)
-      .all();
+    const rows = this.db.select().from(projects).where(condition).orderBy(projects.name).all();
 
     return rows.map(toProject);
   }
@@ -240,5 +210,4 @@ export class SqliteRepository implements Repository {
     if (!project) throw new ProjectNotFoundError(id);
     return project;
   }
-
 }

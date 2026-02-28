@@ -1,16 +1,13 @@
-import { beforeEach, describe, expect, it } from "bun:test";
 import { Database } from "bun:sqlite";
+import { beforeEach, describe, expect, it } from "bun:test";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { migrate } from "drizzle-orm/bun-sqlite/migrator";
+import { NoTimerRunningError, ValidationError } from "@/core/errors.ts";
+import { createProject } from "@/core/projects.ts";
+import type { Repository } from "@/data/repository.ts";
 import * as schema from "@/data/schema.ts";
 import { SqliteRepository } from "@/data/sqlite.ts";
-import type { Repository } from "@/data/repository.ts";
 import { handleToolCall, resolveProjectId } from "@/mcp/handle.ts";
-import {
-  NoTimerRunningError,
-  ValidationError,
-} from "@/core/errors.ts";
-import { createProject } from "@/core/projects.ts";
 
 function createRepo(): Repository {
   const sqlite = new Database(":memory:");

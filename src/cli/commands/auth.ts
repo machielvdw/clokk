@@ -1,8 +1,8 @@
 import { defineCommand } from "citty";
 import { getContext } from "@/cli/context.ts";
-import { login, logout } from "@/core/auth.ts";
-import { saveConfig } from "@/config.ts";
 import { success } from "@/cli/output.ts";
+import { saveConfig } from "@/config.ts";
+import { login, logout } from "@/core/auth.ts";
 
 export default defineCommand({
   meta: {

@@ -1,7 +1,7 @@
 import { defineCommand } from "citty";
 import { getContext } from "@/cli/context.ts";
-import { triggerSync } from "@/core/sync.ts";
 import { success } from "@/cli/output.ts";
+import { triggerSync } from "@/core/sync.ts";
 import type { SyncResult } from "@/data/repository.ts";
 
 export default defineCommand({

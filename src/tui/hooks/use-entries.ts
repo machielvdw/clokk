@@ -1,6 +1,6 @@
 import { createSignal, onCleanup } from "solid-js";
-import type { Entry } from "@/core/types.ts";
 import { listEntries } from "@/core/entries.ts";
+import type { Entry } from "@/core/types.ts";
 import { useRepo } from "@/tui/hooks/use-repo.ts";
 
 const PAGE_SIZE = 20;
@@ -11,9 +11,7 @@ export function useEntries() {
   const [entries, setEntries] = createSignal<Entry[]>([]);
   const [total, setTotal] = createSignal(0);
   const [page, setPage] = createSignal(0);
-  const [projectNames, setProjectNames] = createSignal<Map<string, string>>(
-    new Map(),
-  );
+  const [projectNames, setProjectNames] = createSignal<Map<string, string>>(new Map());
 
   async function refresh() {
     try {
@@ -27,9 +25,7 @@ export function useEntries() {
       // Resolve project names for display
       const nameMap = new Map<string, string>();
       const projectIds = new Set(
-        result.entries
-          .map((e) => e.project_id)
-          .filter((id): id is string => id != null),
+        result.entries.map((e) => e.project_id).filter((id): id is string => id != null),
       );
       for (const pid of projectIds) {
         const project = await repo.getProject(pid);

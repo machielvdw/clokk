@@ -6,8 +6,13 @@ import { parseDuration } from "@/utils/duration.ts";
 dayjs.extend(utc);
 
 const WEEKDAYS = [
-  "sunday", "monday", "tuesday", "wednesday",
-  "thursday", "friday", "saturday",
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
 ] as const;
 
 // ─── Tag parsing ─────────────────────────────────────────────────────
@@ -84,7 +89,7 @@ export function resolveDateShortcuts(
 
   if (args.week) {
     const weekStart = (opts?.weekStart ?? "monday").toLowerCase();
-    const weekStartIdx = WEEKDAYS.indexOf(weekStart as typeof WEEKDAYS[number]);
+    const weekStartIdx = WEEKDAYS.indexOf(weekStart as (typeof WEEKDAYS)[number]);
     const startDay = weekStartIdx === -1 ? 1 : weekStartIdx; // default monday
     const currentDay = ref.day();
     let daysBack = currentDay - startDay;

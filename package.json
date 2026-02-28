@@ -20,6 +20,8 @@
     "test": "bun test",
     "build": "bun build ./src/cli/index.ts --compile --outfile dist/clokk",
     "type-check": "tsc --noEmit",
+    "lint": "bunx biome check src tests",
+    "lint:fix": "bunx biome check --write src tests",
     "db:generate": "bunx drizzle-kit generate",
     "db:push": "bunx drizzle-kit push"
   },
@@ -37,6 +39,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.4.4",
     "@types/bun": "1.2.4",
     "drizzle-kit": "0.31.1",
     "typescript": "5.7.3"

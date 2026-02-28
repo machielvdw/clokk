@@ -6,6 +6,8 @@
 bun test                      # Run all tests
 bun test tests/core/timer.test.ts  # Run a single test file
 bun tsc --noEmit              # Type check (strict mode)
+bun run lint                  # Lint + format check (Biome)
+bun run lint:fix              # Auto-fix lint + format issues
 bunx drizzle-kit generate     # Generate DB migrations after schema changes
 bun build ./src/cli/index.ts --compile --outfile dist/clokk  # Compile binary
 ```

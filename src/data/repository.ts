@@ -88,8 +88,6 @@ export interface SyncableRepository extends Repository {
 }
 
 /** Type guard: check if a Repository supports sync. */
-export function isSyncableRepository(
-  repo: Repository,
-): repo is SyncableRepository {
+export function isSyncableRepository(repo: Repository): repo is SyncableRepository {
   return "sync" in repo && typeof (repo as SyncableRepository).sync === "function";
 }

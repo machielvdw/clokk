@@ -6,7 +6,15 @@ import { ValidationError } from "@/core/errors.ts";
 dayjs.extend(utc);
 dayjs.extend(customParseFormat);
 
-const WEEKDAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"] as const;
+const WEEKDAYS = [
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+] as const;
 
 const ACCEPTED_FORMATS_MSG = [
   'Accepted formats: "now", "today 9am", "yesterday 5pm", "2 hours ago",',
@@ -56,9 +64,11 @@ export function parseDate(input: string, now?: Date): string {
   }
 
   // "last monday", "last friday 3pm"
-  const lastDayMatch = trimmed.match(/^last\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?:\s+(.+))?$/i);
+  const lastDayMatch = trimmed.match(
+    /^last\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?:\s+(.+))?$/i,
+  );
   if (lastDayMatch) {
-    const targetDay = WEEKDAYS.indexOf(lastDayMatch[1]!.toLowerCase() as typeof WEEKDAYS[number]);
+    const targetDay = WEEKDAYS.indexOf(lastDayMatch[1]!.toLowerCase() as (typeof WEEKDAYS)[number]);
     const timeStr = lastDayMatch[2];
     const currentDay = reference.day();
     let daysBack = currentDay - targetDay;
@@ -103,10 +113,7 @@ export function parseDate(input: string, now?: Date): string {
     return fallback.toISOString();
   }
 
-  throw new ValidationError(
-    `Unable to parse date: "${input}". ${ACCEPTED_FORMATS_MSG}`,
-    { input },
-  );
+  throw new ValidationError(`Unable to parse date: "${input}". ${ACCEPTED_FORMATS_MSG}`, { input });
 }
 
 /**
@@ -118,7 +125,10 @@ function applyTime(base: dayjs.Dayjs, timeStr: string, originalInput: string): s
   // "14:30" or "9:00"
   const time24Match = t.match(/^(\d{1,2}):(\d{2})$/);
   if (time24Match) {
-    return base.hour(parseInt(time24Match[1]!, 10)).minute(parseInt(time24Match[2]!, 10)).toISOString();
+    return base
+      .hour(parseInt(time24Match[1]!, 10))
+      .minute(parseInt(time24Match[2]!, 10))
+      .toISOString();
   }
 
   // "9am", "3pm", "3:30pm", "12:00am"

@@ -1,17 +1,16 @@
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc.js";
 import isoWeek from "dayjs/plugin/isoWeek.js";
-
-import type { Repository } from "@/data/repository.ts";
+import utc from "dayjs/plugin/utc.js";
 import type {
   Entry,
   ExportFilters,
   ExportResult,
+  Project,
   ReportFilters,
   ReportGroup,
   ReportResult,
-  Project,
 } from "@/core/types.ts";
+import type { Repository } from "@/data/repository.ts";
 
 dayjs.extend(utc);
 dayjs.extend(isoWeek);
@@ -90,8 +89,7 @@ function groupEntries(
       if (firstEntry.project_id) {
         const project = projectCache.get(firstEntry.project_id);
         if (project?.rate) {
-          billableAmount =
-            Math.round((billableSeconds / 3600) * project.rate * 100) / 100;
+          billableAmount = Math.round((billableSeconds / 3600) * project.rate * 100) / 100;
           currency = project.currency;
         }
       }
@@ -111,11 +109,7 @@ function groupEntries(
   return groups;
 }
 
-function getGroupKeys(
-  entry: Entry,
-  groupBy: string,
-  projectCache: Map<string, Project>,
-): string[] {
+function getGroupKeys(entry: Entry, groupBy: string, projectCache: Map<string, Project>): string[] {
   switch (groupBy) {
     case "project": {
       if (entry.project_id) {
@@ -132,10 +126,7 @@ function getGroupKeys(
       return [dayjs.utc(entry.start_time).format("YYYY-MM-DD")];
     }
     case "week": {
-      const weekStart = dayjs
-        .utc(entry.start_time)
-        .startOf("isoWeek")
-        .format("YYYY-MM-DD");
+      const weekStart = dayjs.utc(entry.start_time).startOf("isoWeek").format("YYYY-MM-DD");
       return [`Week of ${weekStart}`];
     }
     default:
@@ -170,9 +161,7 @@ export async function exportEntries(
       entries.map((e) => ({
         id: e.id,
         description: e.description,
-        project: e.project_id
-          ? (projectCache.get(e.project_id)?.name ?? null)
-          : null,
+        project: e.project_id ? (projectCache.get(e.project_id)?.name ?? null) : null,
         start_time: e.start_time,
         end_time: e.end_time,
         duration_seconds: e.duration_seconds,
@@ -183,12 +172,9 @@ export async function exportEntries(
       2,
     );
   } else {
-    const header =
-      "id,description,project,start_time,end_time,duration_seconds,tags,billable";
+    const header = "id,description,project,start_time,end_time,duration_seconds,tags,billable";
     const rows = entries.map((e) => {
-      const projectName = e.project_id
-        ? (projectCache.get(e.project_id)?.name ?? "")
-        : "";
+      const projectName = e.project_id ? (projectCache.get(e.project_id)?.name ?? "") : "";
       return [
         e.id,
         csvEscape(e.description),

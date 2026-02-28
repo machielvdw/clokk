@@ -1,7 +1,7 @@
-import { Show } from "solid-js";
-import type { Accessor } from "solid-js";
 import type { InputRenderable } from "@opentui/core";
 import { InputRenderableEvents } from "@opentui/core";
+import type { Accessor } from "solid-js";
+import { Show } from "solid-js";
 
 interface InputModalProps {
   title: string;

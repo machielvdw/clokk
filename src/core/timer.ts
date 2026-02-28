@@ -1,26 +1,23 @@
-import type { Repository } from "@/data/repository.ts";
-import type {
-  Entry,
-  StartTimerInput,
-  StopTimerInput,
-  ResumeTimerInput,
-  SwitchTimerInput,
-  StatusResult,
-  SwitchResult,
-} from "@/core/types.ts";
 import {
-  TimerAlreadyRunningError,
-  NoTimerRunningError,
-  ProjectNotFoundError,
   EntryNotFoundError,
   NoEntriesFoundError,
+  NoTimerRunningError,
+  ProjectNotFoundError,
+  TimerAlreadyRunningError,
 } from "@/core/errors.ts";
+import type {
+  Entry,
+  ResumeTimerInput,
+  StartTimerInput,
+  StatusResult,
+  StopTimerInput,
+  SwitchResult,
+  SwitchTimerInput,
+} from "@/core/types.ts";
+import type { Repository } from "@/data/repository.ts";
 import { generateEntryId } from "@/utils/id.ts";
 
-export async function startTimer(
-  repo: Repository,
-  input: StartTimerInput = {},
-): Promise<Entry> {
+export async function startTimer(repo: Repository, input: StartTimerInput = {}): Promise<Entry> {
   const running = await repo.getRunningEntry();
   if (running) {
     throw new TimerAlreadyRunningError(running.id, running.description);
@@ -45,10 +42,7 @@ export async function startTimer(
   });
 }
 
-export async function stopTimer(
-  repo: Repository,
-  input: StopTimerInput = {},
-): Promise<Entry> {
+export async function stopTimer(repo: Repository, input: StopTimerInput = {}): Promise<Entry> {
   const running = await repo.getRunningEntry();
   if (!running) throw new NoTimerRunningError();
 
@@ -65,16 +59,11 @@ export async function getStatus(repo: Repository): Promise<StatusResult> {
   const running = await repo.getRunningEntry();
   if (!running) return { running: false };
 
-  const elapsed = Math.floor(
-    (Date.now() - new Date(running.start_time).getTime()) / 1000,
-  );
+  const elapsed = Math.floor((Date.now() - new Date(running.start_time).getTime()) / 1000);
   return { running: true, entry: running, elapsed_seconds: elapsed };
 }
 
-export async function resumeTimer(
-  repo: Repository,
-  input: ResumeTimerInput = {},
-): Promise<Entry> {
+export async function resumeTimer(repo: Repository, input: ResumeTimerInput = {}): Promise<Entry> {
   const running = await repo.getRunningEntry();
   if (running) {
     throw new TimerAlreadyRunningError(running.id, running.description);

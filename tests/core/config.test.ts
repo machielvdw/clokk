@@ -1,11 +1,8 @@
 import { describe, expect, it } from "bun:test";
-import { showConfig, getConfigValue, setConfigValue } from "@/core/config.ts";
-import { getDefaultConfig } from "@/config.ts";
 import type { ClokkConfig } from "@/config.ts";
-import {
-  ConfigKeyUnknownError,
-  ConfigValueInvalidError,
-} from "@/core/errors.ts";
+import { getDefaultConfig } from "@/config.ts";
+import { getConfigValue, setConfigValue, showConfig } from "@/core/config.ts";
+import { ConfigKeyUnknownError, ConfigValueInvalidError } from "@/core/errors.ts";
 
 function freshConfig(): ClokkConfig {
   return getDefaultConfig();
@@ -52,16 +49,12 @@ describe("getConfigValue", () => {
 
   it("throws ConfigKeyUnknownError for unknown key", () => {
     const config = freshConfig();
-    expect(() => getConfigValue(config, "nonexistent")).toThrow(
-      ConfigKeyUnknownError,
-    );
+    expect(() => getConfigValue(config, "nonexistent")).toThrow(ConfigKeyUnknownError);
   });
 
   it("throws ConfigKeyUnknownError for partial dot path", () => {
     const config = freshConfig();
-    expect(() => getConfigValue(config, "turso")).toThrow(
-      ConfigKeyUnknownError,
-    );
+    expect(() => getConfigValue(config, "turso")).toThrow(ConfigKeyUnknownError);
   });
 });
 
@@ -91,11 +84,7 @@ describe("setConfigValue", () => {
 
   it("sets a nested value with dot notation", () => {
     const config = freshConfig();
-    const result = setConfigValue(
-      config,
-      "turso.url",
-      "libsql://my-db.turso.io",
-    );
+    const result = setConfigValue(config, "turso.url", "libsql://my-db.turso.io");
     expect(result.config.turso.url).toBe("libsql://my-db.turso.io");
   });
 
@@ -107,9 +96,7 @@ describe("setConfigValue", () => {
 
   it("throws ConfigKeyUnknownError for unknown key", () => {
     const config = freshConfig();
-    expect(() => setConfigValue(config, "nonexistent", "value")).toThrow(
-      ConfigKeyUnknownError,
-    );
+    expect(() => setConfigValue(config, "nonexistent", "value")).toThrow(ConfigKeyUnknownError);
   });
 
   it("throws ConfigValueInvalidError for wrong type", () => {
@@ -121,15 +108,11 @@ describe("setConfigValue", () => {
 
   it("throws ConfigValueInvalidError for invalid week_start", () => {
     const config = freshConfig();
-    expect(() => setConfigValue(config, "week_start", "someday")).toThrow(
-      ConfigValueInvalidError,
-    );
+    expect(() => setConfigValue(config, "week_start", "someday")).toThrow(ConfigValueInvalidError);
   });
 
   it("throws ConfigValueInvalidError for number instead of string", () => {
     const config = freshConfig();
-    expect(() => setConfigValue(config, "default_currency", 123)).toThrow(
-      ConfigValueInvalidError,
-    );
+    expect(() => setConfigValue(config, "default_currency", 123)).toThrow(ConfigValueInvalidError);
   });
 });

@@ -1,14 +1,8 @@
 import { afterEach, describe, expect, it } from "bun:test";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
 import { tmpdir } from "node:os";
-import {
-  ensureConfigDir,
-  getConfigDir,
-  getDbPath,
-  loadConfig,
-  saveConfig,
-} from "@/config.ts";
+import { join } from "node:path";
+import { ensureConfigDir, getConfigDir, getDbPath, loadConfig, saveConfig } from "@/config.ts";
 
 const TEST_DIR = join(tmpdir(), `clokk-test-${Date.now()}`);
 
@@ -55,10 +49,7 @@ describe("ensureConfigDir", () => {
   it("does not overwrite existing config", () => {
     setTestDir(TEST_DIR);
     mkdirSync(TEST_DIR, { recursive: true });
-    writeFileSync(
-      join(TEST_DIR, "config.json"),
-      JSON.stringify({ default_currency: "EUR" }),
-    );
+    writeFileSync(join(TEST_DIR, "config.json"), JSON.stringify({ default_currency: "EUR" }));
 
     ensureConfigDir();
 

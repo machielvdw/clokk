@@ -1,9 +1,9 @@
 import { defineCommand } from "citty";
 import { getContext } from "@/cli/context.ts";
-import { listEntries } from "@/core/entries.ts";
-import { success } from "@/cli/output.ts";
 import { formatEntryTable } from "@/cli/format.ts";
+import { success } from "@/cli/output.ts";
 import { parseTags, resolveDateShortcuts } from "@/cli/parse.ts";
+import { listEntries } from "@/core/entries.ts";
 import type { EntryFilters, ListEntriesResult } from "@/core/types.ts";
 
 export default defineCommand({
@@ -98,9 +98,7 @@ export default defineCommand({
 
     // Build project name map for human output
     const projectIds = new Set(
-      result.entries
-        .map((e) => e.project_id)
-        .filter((id): id is string => id != null),
+      result.entries.map((e) => e.project_id).filter((id): id is string => id != null),
     );
     const projectNames = new Map<string, string>();
     for (const pid of projectIds) {
@@ -108,10 +106,8 @@ export default defineCommand({
       if (p) projectNames.set(pid, p.name);
     }
 
-    success(
-      result,
-      `${result.entries.length} entries (${result.total} total).`,
-      (d) => formatEntryTable((d as ListEntriesResult).entries, { projectNames }),
+    success(result, `${result.entries.length} entries (${result.total} total).`, (d) =>
+      formatEntryTable((d as ListEntriesResult).entries, { projectNames }),
     );
   },
 });

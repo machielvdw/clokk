@@ -1,12 +1,12 @@
-import { beforeEach, describe, expect, it } from "bun:test";
 import { Database } from "bun:sqlite";
+import { describe, expect, it } from "bun:test";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { migrate } from "drizzle-orm/bun-sqlite/migrator";
-import { SqliteRepository } from "@/data/sqlite.ts";
-import * as schema from "@/data/schema.ts";
-import { triggerSync } from "@/core/sync.ts";
 import { SyncNotConfiguredError } from "@/core/errors.ts";
+import { triggerSync } from "@/core/sync.ts";
 import { isSyncableRepository } from "@/data/repository.ts";
+import * as schema from "@/data/schema.ts";
+import { SqliteRepository } from "@/data/sqlite.ts";
 
 function createSqliteRepo(): SqliteRepository {
   const sqlite = new Database(":memory:");

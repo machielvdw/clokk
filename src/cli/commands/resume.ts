@@ -1,8 +1,8 @@
 import { defineCommand } from "citty";
 import { getContext } from "@/cli/context.ts";
-import { resumeTimer } from "@/core/timer.ts";
-import { success } from "@/cli/output.ts";
 import { formatEntry } from "@/cli/format.ts";
+import { success } from "@/cli/output.ts";
+import { resumeTimer } from "@/core/timer.ts";
 import type { Entry } from "@/core/types.ts";
 
 export default defineCommand({

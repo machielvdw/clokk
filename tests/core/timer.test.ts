@@ -1,25 +1,25 @@
-import { beforeEach, describe, expect, it } from "bun:test";
 import { Database } from "bun:sqlite";
+import { beforeEach, describe, expect, it } from "bun:test";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { migrate } from "drizzle-orm/bun-sqlite/migrator";
-import { SqliteRepository } from "@/data/sqlite.ts";
-import * as schema from "@/data/schema.ts";
-import type { Repository } from "@/data/repository.ts";
 import {
-  startTimer,
-  stopTimer,
-  getStatus,
-  resumeTimer,
-  switchTimer,
-  cancelTimer,
-} from "@/core/timer.ts";
-import {
-  TimerAlreadyRunningError,
-  NoTimerRunningError,
-  ProjectNotFoundError,
   EntryNotFoundError,
   NoEntriesFoundError,
+  NoTimerRunningError,
+  ProjectNotFoundError,
+  TimerAlreadyRunningError,
 } from "@/core/errors.ts";
+import {
+  cancelTimer,
+  getStatus,
+  resumeTimer,
+  startTimer,
+  stopTimer,
+  switchTimer,
+} from "@/core/timer.ts";
+import type { Repository } from "@/data/repository.ts";
+import * as schema from "@/data/schema.ts";
+import { SqliteRepository } from "@/data/sqlite.ts";
 
 let repo: Repository;
 
@@ -194,7 +194,7 @@ describe("resumeTimer", () => {
 
   it("copies project, tags, and billable from source", async () => {
     await repo.createProject({ id: "prj_1", name: "Acme" });
-    const entry = await startTimer(repo, {
+    const _entry = await startTimer(repo, {
       description: "Work",
       project: "Acme",
       tags: ["dev", "urgent"],
@@ -211,15 +211,11 @@ describe("resumeTimer", () => {
 
   it("throws TimerAlreadyRunningError if timer is running", async () => {
     await startTimer(repo, { description: "Running" });
-    expect(resumeTimer(repo)).rejects.toBeInstanceOf(
-      TimerAlreadyRunningError,
-    );
+    expect(resumeTimer(repo)).rejects.toBeInstanceOf(TimerAlreadyRunningError);
   });
 
   it("throws EntryNotFoundError for nonexistent entry ID", async () => {
-    expect(
-      resumeTimer(repo, { id: "ent_nonexistent" }),
-    ).rejects.toBeInstanceOf(EntryNotFoundError);
+    expect(resumeTimer(repo, { id: "ent_nonexistent" })).rejects.toBeInstanceOf(EntryNotFoundError);
   });
 
   it("throws NoEntriesFoundError when no previous entries", async () => {
@@ -255,9 +251,9 @@ describe("switchTimer", () => {
   });
 
   it("throws NoTimerRunningError when nothing running", async () => {
-    expect(
-      switchTimer(repo, { description: "New task" }),
-    ).rejects.toBeInstanceOf(NoTimerRunningError);
+    expect(switchTimer(repo, { description: "New task" })).rejects.toBeInstanceOf(
+      NoTimerRunningError,
+    );
   });
 });
 

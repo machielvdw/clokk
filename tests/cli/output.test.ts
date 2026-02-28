@@ -1,16 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import {
   detectOutputMode,
-  formatSuccessJson,
-  formatErrorJson,
-  success,
   error,
+  formatErrorJson,
+  formatSuccessJson,
+  success,
 } from "@/cli/output.ts";
 import {
-  TimerAlreadyRunningError,
-  NoTimerRunningError,
-  ValidationError,
   DatabaseError,
+  NoTimerRunningError,
+  TimerAlreadyRunningError,
+  ValidationError,
 } from "@/core/errors.ts";
 
 // ─── detectOutputMode ────────────────────────────────────────────────
@@ -156,7 +156,11 @@ describe("formatErrorJson", () => {
 describe("success", () => {
   it("writes JSON envelope to stdout in json mode", () => {
     let output = "";
-    const mockStdout = { write: (s: string) => { output += s; } };
+    const mockStdout = {
+      write: (s: string) => {
+        output += s;
+      },
+    };
 
     success({ id: "ent_1" }, "Created", undefined, {
       mode: "json",
@@ -170,21 +174,27 @@ describe("success", () => {
 
   it("uses humanFormatter in human mode", () => {
     let output = "";
-    const mockStdout = { write: (s: string) => { output += s; } };
+    const mockStdout = {
+      write: (s: string) => {
+        output += s;
+      },
+    };
 
-    success(
-      { id: "ent_1" },
-      "Created",
-      (data) => `Entry: ${(data as { id: string }).id}`,
-      { mode: "human", stdout: mockStdout },
-    );
+    success({ id: "ent_1" }, "Created", (data) => `Entry: ${(data as { id: string }).id}`, {
+      mode: "human",
+      stdout: mockStdout,
+    });
 
     expect(output.trim()).toBe("Entry: ent_1");
   });
 
   it("falls back to message when no humanFormatter", () => {
     let output = "";
-    const mockStdout = { write: (s: string) => { output += s; } };
+    const mockStdout = {
+      write: (s: string) => {
+        output += s;
+      },
+    };
 
     success({ id: "ent_1" }, "Timer started", undefined, {
       mode: "human",
@@ -201,15 +211,21 @@ describe("error", () => {
   it("writes JSON error envelope to stderr in json mode and exits", () => {
     let output = "";
     let exitCode = -1;
-    const mockStderr = { write: (s: string) => { output += s; } };
-    const mockExit = (code: number) => { exitCode = code; };
+    const mockStderr = {
+      write: (s: string) => {
+        output += s;
+      },
+    };
+    const mockExit = (code: number) => {
+      exitCode = code;
+    };
 
     expect(() =>
       error(new TimerAlreadyRunningError("ent_1", "Test"), undefined, {
         mode: "json",
         stderr: mockStderr,
         exit: mockExit,
-      })
+      }),
     ).toThrow();
 
     const parsed = JSON.parse(output.trim());
@@ -221,14 +237,16 @@ describe("error", () => {
   it("uses exitCode 2 for system errors", () => {
     let exitCode = -1;
     const mockStderr = { write: () => {} };
-    const mockExit = (code: number) => { exitCode = code; };
+    const mockExit = (code: number) => {
+      exitCode = code;
+    };
 
     expect(() =>
       error(new DatabaseError("timeout"), undefined, {
         mode: "json",
         stderr: mockStderr,
         exit: mockExit,
-      })
+      }),
     ).toThrow();
 
     expect(exitCode).toBe(2);
@@ -236,7 +254,11 @@ describe("error", () => {
 
   it("writes human-formatted error in human mode", () => {
     let output = "";
-    const mockStderr = { write: (s: string) => { output += s; } };
+    const mockStderr = {
+      write: (s: string) => {
+        output += s;
+      },
+    };
     const mockExit = () => {};
 
     expect(() =>
@@ -244,7 +266,7 @@ describe("error", () => {
         mode: "human",
         stderr: mockStderr,
         exit: mockExit,
-      })
+      }),
     ).toThrow();
 
     expect(output).toContain("Error:");
@@ -253,15 +275,19 @@ describe("error", () => {
 
   it("uses custom humanFormatter when provided", () => {
     let output = "";
-    const mockStderr = { write: (s: string) => { output += s; } };
+    const mockStderr = {
+      write: (s: string) => {
+        output += s;
+      },
+    };
     const mockExit = () => {};
 
     expect(() =>
-      error(
-        new NoTimerRunningError(),
-        (err) => `Custom: ${err.code}`,
-        { mode: "human", stderr: mockStderr, exit: mockExit },
-      )
+      error(new NoTimerRunningError(), (err) => `Custom: ${err.code}`, {
+        mode: "human",
+        stderr: mockStderr,
+        exit: mockExit,
+      }),
     ).toThrow();
 
     expect(output.trim()).toBe("Custom: NO_TIMER_RUNNING");

@@ -1,9 +1,9 @@
 import { defineCommand } from "citty";
 import { getContext } from "@/cli/context.ts";
-import { logEntry } from "@/core/entries.ts";
-import { success } from "@/cli/output.ts";
 import { formatEntry } from "@/cli/format.ts";
-import { parseTags, parseDateArg, parseDurationArg } from "@/cli/parse.ts";
+import { success } from "@/cli/output.ts";
+import { parseDateArg, parseDurationArg, parseTags } from "@/cli/parse.ts";
+import { logEntry } from "@/core/entries.ts";
 import type { Entry } from "@/core/types.ts";
 
 export default defineCommand({

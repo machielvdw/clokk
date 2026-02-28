@@ -362,7 +362,7 @@
 
 **Depends on:** None (can be done anytime).
 
-- [ ] **9.1 — Biome setup & configuration**
+- [x] **9.1 — Biome setup & configuration**
   - `bun add -d @biomejs/biome` — install as dev dependency
   - `bunx biome init` — generate `biome.json` config
   - Configure for this project:
@@ -373,7 +373,7 @@
     - Override for `.tsx` files if needed (JSX-specific rules)
   - Align rules with existing code conventions (e.g., named exports only, `@/` path alias usage)
 
-- [ ] **9.2 — Package scripts & CI integration**
+- [x] **9.2 — Package scripts & CI integration**
   - Add scripts to `package.json`:
     - `"lint": "bunx biome check src/ tests/"` — lint + format check
     - `"lint:fix": "bunx biome check --write src/ tests/"` — auto-fix
@@ -381,7 +381,7 @@
   - Update `.github/workflows/ci.yml` — add `bun run lint` step before tests
   - Update `CLAUDE.md` — add lint/format commands to the Commands section
 
-- [ ] **9.3 — Codebase formatting pass**
+- [x] **9.3 — Codebase formatting pass**
   - Run `bunx biome check --write src/ tests/` to auto-fix the entire codebase
   - Review and resolve any lint errors that can't be auto-fixed
   - Verify all tests still pass after formatting changes

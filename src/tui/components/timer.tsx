@@ -1,8 +1,8 @@
-import { Show } from "solid-js";
 import type { Accessor } from "solid-js";
+import { Show } from "solid-js";
 import type { StatusResult } from "@/core/types.ts";
-import { formatDuration } from "@/utils/duration.ts";
 import { formatDate } from "@/utils/date.ts";
+import { formatDuration } from "@/utils/duration.ts";
 
 interface TimerProps {
   status: Accessor<StatusResult>;
@@ -38,14 +38,10 @@ export function Timer(props: TimerProps) {
 
         <box flexDirection="row" gap={2} marginTop={1}>
           <Show when={props.status().entry?.project_id}>
-            <text fg="#06b6d4">
-              Project: {props.status().entry!.project_id}
-            </text>
+            <text fg="#06b6d4">Project: {props.status().entry!.project_id}</text>
           </Show>
           <Show when={(props.status().entry?.tags.length ?? 0) > 0}>
-            <text fg="#22c55e">
-              Tags: {props.status().entry!.tags.join(", ")}
-            </text>
+            <text fg="#22c55e">Tags: {props.status().entry!.tags.join(", ")}</text>
           </Show>
           <Show when={props.status().entry?.billable}>
             <text fg="#eab308">$</text>

@@ -216,7 +216,15 @@ describe("clokk switch", () => {
 
   it("switches with project and tags", () => {
     runClokk(["start", "Before switch", "--json"]);
-    const r = runClokk(["switch", "After switch", "--project", "TestProject", "--tags", "new", "--json"]);
+    const r = runClokk([
+      "switch",
+      "After switch",
+      "--project",
+      "TestProject",
+      "--tags",
+      "new",
+      "--json",
+    ]);
     expect(r.exitCode).toBe(0);
     const json = parseJson(r.stdout);
     expect(json.data.started.project_id).toMatch(/^prj_/);

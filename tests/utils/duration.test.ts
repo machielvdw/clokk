@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import { formatDuration, parseDuration } from "@/utils/duration.ts";
 import { ValidationError } from "@/core/errors.ts";
+import { formatDuration, parseDuration } from "@/utils/duration.ts";
 
 describe("parseDuration", () => {
   it('parses "1h30m" → 5400', () => expect(parseDuration("1h30m")).toBe(5400));

@@ -1,9 +1,9 @@
 import { defineCommand } from "citty";
 import { getContext } from "@/cli/context.ts";
-import { showConfig, getConfigValue, setConfigValue } from "@/core/config.ts";
-import { saveConfig } from "@/config.ts";
 import { success } from "@/cli/output.ts";
 import type { ClokkConfig } from "@/config.ts";
+import { saveConfig } from "@/config.ts";
+import { getConfigValue, setConfigValue, showConfig } from "@/core/config.ts";
 
 export default defineCommand({
   meta: {
@@ -18,9 +18,7 @@ export default defineCommand({
       async run() {
         const { config } = await getContext();
         const result = showConfig(config);
-        success(result, "Configuration:", (d) =>
-          JSON.stringify(d as ClokkConfig, null, 2),
-        );
+        success(result, "Configuration:", (d) => JSON.stringify(d as ClokkConfig, null, 2));
       },
     }),
     get: defineCommand({

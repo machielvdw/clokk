@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc.js";
-import { and, eq, gte, isNull, like, lte, sql } from "drizzle-orm";
+import { eq, gte, isNull, like, lte, sql } from "drizzle-orm";
 
 import type { Entry, EntryFilters, Project, ReportFilters } from "@/core/types.ts";
 import { entries } from "@/data/schema.ts";
@@ -12,7 +12,7 @@ dayjs.extend(utc);
 export type EntryRow = typeof entries.$inferSelect;
 
 // Import projects here just for the type inference
-import { projects } from "@/data/schema.ts";
+import type { projects } from "@/data/schema.ts";
 export type ProjectRow = typeof projects.$inferSelect;
 
 // ─── Mappers ────────────────────────────────────────────────────────────
@@ -20,9 +20,7 @@ export type ProjectRow = typeof projects.$inferSelect;
 export function toEntry(row: EntryRow): Entry {
   let durationSeconds: number | null = null;
   if (row.end_time && row.start_time) {
-    durationSeconds = dayjs
-      .utc(row.end_time)
-      .diff(dayjs.utc(row.start_time), "second");
+    durationSeconds = dayjs.utc(row.end_time).diff(dayjs.utc(row.start_time), "second");
   }
   return {
     id: row.id,

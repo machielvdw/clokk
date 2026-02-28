@@ -1,9 +1,9 @@
-import { Show, For } from "solid-js";
 import type { Accessor } from "solid-js";
-import type { ReportResult, ReportGroup } from "@/core/types.ts";
-import { formatDuration } from "@/utils/duration.ts";
-import { formatDate } from "@/utils/date.ts";
+import { For, Show } from "solid-js";
+import type { ReportGroup, ReportResult } from "@/core/types.ts";
 import type { RangePeriod } from "@/tui/hooks/use-report.ts";
+import { formatDate } from "@/utils/date.ts";
+import { formatDuration } from "@/utils/duration.ts";
 
 interface ReportViewProps {
   report: Accessor<ReportResult | null>;
@@ -42,20 +42,13 @@ export function ReportView(props: ReportViewProps) {
           <text fg="#ffffff" attributes={1}>
             Total: {formatDuration(props.report()!.total_seconds)}
           </text>
-          <text fg="#22c55e">
-            Billable: {formatDuration(props.report()!.billable_seconds)}
-          </text>
+          <text fg="#22c55e">Billable: {formatDuration(props.report()!.billable_seconds)}</text>
         </box>
 
         {/* Bar chart */}
         <box flexDirection="column" marginTop={1} flexGrow={1}>
           <For each={props.report()!.groups}>
-            {(group) => (
-              <ReportBar
-                group={group}
-                maxSeconds={getMaxSeconds(props.report()!)}
-              />
-            )}
+            {(group) => <ReportBar group={group} maxSeconds={getMaxSeconds(props.report()!)} />}
           </For>
           <Show when={props.report()!.groups.length === 0}>
             <text fg="#6b7280">No entries in this period.</text>
@@ -72,14 +65,9 @@ function getMaxSeconds(report: ReportResult): number {
 
 function ReportBar(props: { group: ReportGroup; maxSeconds: number }) {
   const barLength = () =>
-    Math.max(
-      1,
-      Math.round((props.group.total_seconds / props.maxSeconds) * BAR_WIDTH),
-    );
+    Math.max(1, Math.round((props.group.total_seconds / props.maxSeconds) * BAR_WIDTH));
 
-  const bar = () =>
-    "\u2588".repeat(barLength()) +
-    "\u2591".repeat(BAR_WIDTH - barLength());
+  const bar = () => "\u2588".repeat(barLength()) + "\u2591".repeat(BAR_WIDTH - barLength());
 
   const label = () => {
     const key = props.group.key || "(none)";
@@ -92,9 +80,7 @@ function ReportBar(props: { group: ReportGroup; maxSeconds: number }) {
         {label()}
       </text>
       <text fg="#06b6d4">{bar()}</text>
-      <text marginLeft={1}>
-        {formatDuration(props.group.total_seconds)}
-      </text>
+      <text marginLeft={1}>{formatDuration(props.group.total_seconds)}</text>
       <text fg="#6b7280" marginLeft={1}>
         ({props.group.entry_count})
       </text>

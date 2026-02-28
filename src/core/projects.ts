@@ -1,13 +1,6 @@
+import { ProjectAlreadyExistsError, ProjectNotFoundError } from "@/core/errors.ts";
+import type { NewProject, Project, ProjectFilters } from "@/core/types.ts";
 import type { Repository } from "@/data/repository.ts";
-import type {
-  Project,
-  NewProject,
-  ProjectFilters,
-} from "@/core/types.ts";
-import {
-  ProjectAlreadyExistsError,
-  ProjectNotFoundError,
-} from "@/core/errors.ts";
 import { generateProjectId } from "@/utils/id.ts";
 
 export async function createProject(
@@ -57,10 +50,7 @@ export async function editProject(
   return repo.updateProject(project.id, updates);
 }
 
-export async function archiveProject(
-  repo: Repository,
-  idOrName: string,
-): Promise<Project> {
+export async function archiveProject(repo: Repository, idOrName: string): Promise<Project> {
   const project = await repo.getProject(idOrName);
   if (!project) throw new ProjectNotFoundError(idOrName);
 

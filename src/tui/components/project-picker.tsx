@@ -1,9 +1,9 @@
-import { createSignal, createEffect, Show } from "solid-js";
-import type { Accessor } from "solid-js";
-import type { Project } from "@/core/types.ts";
 import type { SelectOption, SelectRenderable } from "@opentui/core";
 import { SelectRenderableEvents } from "@opentui/core";
+import type { Accessor } from "solid-js";
+import { createEffect, createSignal, Show } from "solid-js";
 import { listProjects } from "@/core/projects.ts";
+import type { Project } from "@/core/types.ts";
 import { useRepo } from "@/tui/hooks/use-repo.ts";
 
 interface ProjectPickerProps {
@@ -37,18 +37,14 @@ export function ProjectPicker(props: ProjectPickerProps) {
   });
 
   function handleRef(el: SelectRenderable) {
-    el.on(
-      SelectRenderableEvents.ITEM_SELECTED,
-      (_index: number, option: SelectOption | null) => {
-        if (!option || option.value === null) {
-          props.onSelect(null);
-        } else {
-          const project =
-            projects().find((p) => p.id === option.value) ?? null;
-          props.onSelect(project);
-        }
-      },
-    );
+    el.on(SelectRenderableEvents.ITEM_SELECTED, (_index: number, option: SelectOption | null) => {
+      if (!option || option.value === null) {
+        props.onSelect(null);
+      } else {
+        const project = projects().find((p) => p.id === option.value) ?? null;
+        props.onSelect(project);
+      }
+    });
   }
 
   return (

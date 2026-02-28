@@ -40,7 +40,8 @@ export function parseDuration(input: string): number {
   let totalSeconds = 0;
   let matched = false;
 
-  const unitPattern = /(\d+(?:\.\d+)?)\s*(hours?|hr?|minutes?|mins?|m(?![a-z])|seconds?|secs?|s(?![a-z]))/g;
+  const unitPattern =
+    /(\d+(?:\.\d+)?)\s*(hours?|hr?|minutes?|mins?|m(?![a-z])|seconds?|secs?|s(?![a-z]))/g;
   let match: RegExpExecArray | null;
 
   while ((match = unitPattern.exec(trimmed)) !== null) {

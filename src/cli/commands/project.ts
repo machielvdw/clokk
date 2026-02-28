@@ -1,9 +1,15 @@
 import { defineCommand } from "citty";
-import { getContext } from "@/cli/context.ts";
-import { createProject, listProjects, editProject, archiveProject, deleteProject } from "@/core/projects.ts";
 import { confirmAction } from "@/cli/confirm.ts";
-import { success } from "@/cli/output.ts";
+import { getContext } from "@/cli/context.ts";
 import { formatProject } from "@/cli/format.ts";
+import { success } from "@/cli/output.ts";
+import {
+  archiveProject,
+  createProject,
+  deleteProject,
+  editProject,
+  listProjects,
+} from "@/core/projects.ts";
 import type { Project } from "@/core/types.ts";
 
 export default defineCommand({
@@ -146,10 +152,9 @@ export default defineCommand({
         },
       },
       async run({ args }) {
-        const confirmed = await confirmAction(
-          `Delete project "${args.nameOrId}"?`,
-          { yes: args.yes },
-        );
+        const confirmed = await confirmAction(`Delete project "${args.nameOrId}"?`, {
+          yes: args.yes,
+        });
         if (!confirmed) {
           process.exit(0);
         }

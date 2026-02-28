@@ -19,7 +19,18 @@ beforeAll(() => {
 
   // Seed projects needed by workflow stories
   run(["project", "create", "team-meetings", "--json"]);
-  run(["project", "create", "acme", "--client", "Acme Corp", "--rate", "150", "--currency", "USD", "--json"]);
+  run([
+    "project",
+    "create",
+    "acme",
+    "--client",
+    "Acme Corp",
+    "--rate",
+    "150",
+    "--currency",
+    "USD",
+    "--json",
+  ]);
 });
 
 afterAll(() => {
@@ -56,7 +67,8 @@ describe("§9.1 — Track a day of work", () => {
 
     // Switch to feature work
     const sw1 = json(
-      run(["switch", "Feature: auth flow", "--project", "acme", "--tags", "backend,auth", "--json"]).stdout,
+      run(["switch", "Feature: auth flow", "--project", "acme", "--tags", "backend,auth", "--json"])
+        .stdout,
     );
     expect(sw1.ok).toBe(true);
     expect(sw1.data.stopped.description).toBe("Standup");
@@ -114,11 +126,16 @@ describe("§9.3 — Log time retroactively", () => {
   it("logs a completed entry with from/to and tags", () => {
     const r = json(
       run([
-        "log", "Client call",
-        "--project", "acme",
-        "--from", "2026-02-27T14:00:00Z",
-        "--to", "2026-02-27T15:30:00Z",
-        "--tags", "meeting",
+        "log",
+        "Client call",
+        "--project",
+        "acme",
+        "--from",
+        "2026-02-27T14:00:00Z",
+        "--to",
+        "2026-02-27T15:30:00Z",
+        "--tags",
+        "meeting",
         "--billable",
         "--json",
       ]).stdout,
@@ -134,9 +151,12 @@ describe("§9.3 — Log time retroactively", () => {
   it("logs an entry with duration instead of to", () => {
     const r = json(
       run([
-        "log", "Pairing session",
-        "--from", "2026-02-27T10:00:00Z",
-        "--duration", "2h",
+        "log",
+        "Pairing session",
+        "--from",
+        "2026-02-27T10:00:00Z",
+        "--duration",
+        "2h",
         "--json",
       ]).stdout,
     );
@@ -191,9 +211,12 @@ describe("§9.6 — Fix a mistake", () => {
     // Log an entry with a "mistake"
     const logged = json(
       run([
-        "log", "Meeting with wrong times",
-        "--from", "2026-02-27T09:00:00Z",
-        "--to", "2026-02-27T10:00:00Z",
+        "log",
+        "Meeting with wrong times",
+        "--from",
+        "2026-02-27T09:00:00Z",
+        "--to",
+        "2026-02-27T10:00:00Z",
         "--json",
       ]).stdout,
     );
@@ -201,17 +224,18 @@ describe("§9.6 — Fix a mistake", () => {
 
     // Agent discovers the entry via list
     const list = json(run(["list", "--json"]).stdout);
-    const found = list.data.entries.find(
-      (e: { id: string }) => e.id === entryId,
-    );
+    const found = list.data.entries.find((e: { id: string }) => e.id === entryId);
     expect(found).toBeDefined();
 
     // Fix the times
     const edited = json(
       run([
-        "edit", entryId,
-        "--from", "2026-02-27T09:00:00Z",
-        "--to", "2026-02-27T10:30:00Z",
+        "edit",
+        entryId,
+        "--from",
+        "2026-02-27T09:00:00Z",
+        "--to",
+        "2026-02-27T10:30:00Z",
         "--json",
       ]).stdout,
     );
@@ -227,10 +251,15 @@ describe("§9.7 — Set up a new project", () => {
   it("creates a project with client and rate", () => {
     const r = json(
       run([
-        "project", "create", "acme-redesign",
-        "--client", "Acme Corp",
-        "--rate", "150",
-        "--currency", "USD",
+        "project",
+        "create",
+        "acme-redesign",
+        "--client",
+        "Acme Corp",
+        "--rate",
+        "150",
+        "--currency",
+        "USD",
         "--json",
       ]).stdout,
     );
@@ -250,10 +279,13 @@ describe("§9.8 — Export for invoicing", () => {
     const outPath = join(tmpDir, "acme-feb-2026.csv");
     const r = run([
       "export",
-      "--project", "acme",
+      "--project",
+      "acme",
       "--month",
-      "--format", "csv",
-      "--output", outPath,
+      "--format",
+      "csv",
+      "--output",
+      outPath,
       "--json",
     ]);
     expect(r.exitCode).toBe(0);
@@ -266,12 +298,7 @@ describe("§9.8 — Export for invoicing", () => {
   });
 
   it("exports JSON to stdout", () => {
-    const r = run([
-      "export",
-      "--project", "acme",
-      "--month",
-      "--format", "json",
-    ]);
+    const r = run(["export", "--project", "acme", "--month", "--format", "json"]);
     expect(r.exitCode).toBe(0);
     const entries = JSON.parse(r.stdout);
     expect(Array.isArray(entries)).toBe(true);
@@ -325,9 +352,7 @@ describe("§9.9 — Agent self-onboarding", () => {
 
   it("schema includes args for subcommands", () => {
     const schema = JSON.parse(run(["schema"]).stdout);
-    const startCmd = schema.subCommands.find(
-      (c: { name: string }) => c.name === "start",
-    );
+    const startCmd = schema.subCommands.find((c: { name: string }) => c.name === "start");
     expect(startCmd).toBeDefined();
     expect(startCmd.args.description).toBeDefined();
     expect(startCmd.args.project).toBeDefined();

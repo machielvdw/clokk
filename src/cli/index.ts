@@ -1,7 +1,7 @@
-import type { CommandDef, ArgsDef, SubCommandsDef } from "citty";
+import type { ArgsDef, CommandDef, SubCommandsDef } from "citty";
 import { defineCommand, runCommand, showUsage } from "citty";
+import { detectOutputMode, error as outputError } from "@/cli/output.ts";
 import { ClokkError, DatabaseError } from "@/core/errors.ts";
-import { error as outputError, detectOutputMode } from "@/cli/output.ts";
 
 const VERSION = "0.1.0";
 
@@ -59,9 +59,7 @@ async function resolveDeepCommand(
   cmd: CommandDef<ArgsDef>,
   rawArgs: string[],
 ): Promise<CommandDef<ArgsDef>> {
-  const rawSubs = typeof cmd.subCommands === "function"
-    ? await cmd.subCommands()
-    : cmd.subCommands;
+  const rawSubs = typeof cmd.subCommands === "function" ? await cmd.subCommands() : cmd.subCommands;
   const subCommands = rawSubs as SubCommandsDef | undefined;
 
   if (!subCommands || Object.keys(subCommands).length === 0) return cmd;
@@ -73,9 +71,8 @@ async function resolveDeepCommand(
   const subDef = subCommands[subName];
   if (!subDef) return cmd;
 
-  const resolved = typeof subDef === "function"
-    ? await (subDef as () => Promise<CommandDef<ArgsDef>>)()
-    : subDef;
+  const resolved =
+    typeof subDef === "function" ? await (subDef as () => Promise<CommandDef<ArgsDef>>)() : subDef;
   if (!resolved) return cmd;
 
   return resolveDeepCommand(resolved as CommandDef<ArgsDef>, rawArgs.slice(subIdx + 1));
@@ -122,9 +119,7 @@ async function run(): Promise<void> {
 
     // Unknown/system error: wrap and format
     const wrapped =
-      err instanceof Error
-        ? new DatabaseError(err.message, err)
-        : new DatabaseError(String(err));
+      err instanceof Error ? new DatabaseError(err.message, err) : new DatabaseError(String(err));
     outputError(wrapped, undefined, { mode: getOutputMode(rawArgs) });
   }
 }

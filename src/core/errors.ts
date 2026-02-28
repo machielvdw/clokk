@@ -140,11 +140,8 @@ export class SyncNotConfiguredError extends ClokkError {
   constructor() {
     super({
       code: "SYNC_NOT_CONFIGURED",
-      message:
-        "Cloud sync is not configured. Set up Turso credentials first.",
-      suggestions: [
-        'clokk auth login --url "libsql://..." --token "..."',
-      ],
+      message: "Cloud sync is not configured. Set up Turso credentials first.",
+      suggestions: ['clokk auth login --url "libsql://..." --token "..."'],
     });
   }
 }
