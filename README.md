@@ -13,43 +13,31 @@ clokk is a terminal-native time tracker built from the ground up to be driven by
 
 ## Install
 
+### Quick install (macOS / Linux)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/machielvdw/clokk/main/install.sh | bash
+```
+
+No runtime needed. Downloads a pre-compiled binary and adds it to your PATH.
+
+### Homebrew
+
+```bash
+brew install machielvdw/tap/clokk
+```
+
 ### npm (requires [Bun](https://bun.sh))
 
 ```bash
 npm install -g clokk
-
-# Or run directly
-bunx clokk start "working"
-npx clokk start "working"
-```
-
-### Download binary (no runtime needed)
-
-Pre-compiled binaries for macOS, Linux, and Windows:
-
-```bash
-# macOS / Linux
-curl -fsSL https://github.com/machielvdw/clokk/releases/latest/download/clokk-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/aarch64/arm64/;s/x86_64/x64/') -o clokk
-chmod +x clokk
-sudo mv clokk /usr/local/bin/
-```
-
-Or download manually from [Releases](https://github.com/machielvdw/clokk/releases/latest).
-
-### Homebrew (macOS / Linux)
-
-```bash
-brew tap machielvdw/tap
-brew install clokk
 ```
 
 ### From source
 
 ```bash
-git clone https://github.com/machielvdw/clokk.git
-cd clokk
-bun install
-bun build ./src/cli/index.ts --compile --outfile dist/clokk
+git clone https://github.com/machielvdw/clokk.git && cd clokk
+bun install && bun run build
 # Move dist/clokk somewhere on your PATH
 ```
 
