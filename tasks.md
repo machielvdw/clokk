@@ -299,11 +299,11 @@
 
 ---
 
-## Phase 8: Documentation & Agent Integration
+## Phase 8: Agent Integration
 
-**Goal:** Update documentation to reflect TUI and sync additions. Design and implement first-class support for AI coding agents (Claude Code, OpenClaw, etc.) to use clokk as a tool/skill during development sessions.
+**Goal:** First-class support for AI coding agents (Claude Code, OpenClaw, Cursor, etc.) to use clokk as a tool during development sessions. Four integration mechanisms: MCP server, Agent Skill, Claude Code hooks, and token-efficient `usage` command.
 
-**Depends on:** Phases 5–7 complete (except F.5 manual setup).
+**Depends on:** Phase 4 complete. *(Independent of Phases 5–7. 8.2–8.5 can run in parallel after 8.1.)*
 
 - [x] **8.1 — Documentation updates**
   - Update README with TUI section (`clokk ui` usage, keyboard shortcuts, screenshot/demo)
@@ -311,18 +311,48 @@
   - Update CLAUDE.md if any conventions changed (TUI layer patterns, `.tsx` files, Bun plugin setup)
   - Review and update `clokk commands` and `clokk schema` output to include `ui` command
 
-- [ ] **8.2 — Agent integration research & design**
-  - Study how Claude Code, OpenClaw, and similar agents discover and use CLI tools (MCP servers, tool definitions, slash commands, skills)
-  - Analyze typical human workflows with coding agents: when would time tracking add value? (task transitions, session start/end, context switches, PR work)
-  - Design agent-friendly interaction patterns: should clokk expose an MCP server? A Claude Code skill? Hooks?
-  - Evaluate `clokk schema` output as a self-describing interface for agents — is it sufficient, or do agents need richer tool metadata?
-  - Consider automatic time tracking: agents could call `clokk start` when beginning a task and `clokk stop` when done, without human intervention
+- [x] **8.1.1 — Agent integration research & design**
+  - Researched OpenClaw skill system, Claude Code MCP/hooks/skills, agent-optimized CLI patterns
+  - Decided on four-pronged approach: MCP server + Agent Skill + Claude Code hooks + `usage` command
+  - Updated tech_spec.md §18 with full design and implementation guidance
 
-- [ ] **8.3 — Agent integration implementation**
-  - Implement the chosen integration approach (MCP server, skill definitions, hook scripts, etc.)
-  - Ensure structured JSON output works seamlessly as tool responses
-  - Add agent-specific documentation (how to configure clokk as a tool/skill in your agent)
-  - Test with at least one real agent workflow end-to-end
+- [ ] **8.2 — MCP server implementation** `§18.1`
+  - `bun add @modelcontextprotocol/sdk zod`
+  - `src/mcp/server.ts` — `McpServer` setup with stdio transport, repository initialization
+  - `src/mcp/tools/timer.ts` — `start_timer`, `stop_timer`, `switch_timer`, `timer_status`, `resume_timer`, `cancel_timer`
+  - `src/mcp/tools/entries.ts` — `log_entry`, `list_entries`, `edit_entry`, `delete_entry`
+  - `src/mcp/tools/projects.ts` — `list_projects`, `create_project`, `edit_project`
+  - `src/mcp/tools/reports.ts` — `generate_report`, `export_entries`
+  - `src/cli/commands/mcp.ts` — `clokk mcp serve` subcommand that starts the MCP server
+  - Error handling wrapper: catches `ClokkError` → returns structured error content with `isError: true`
+  - Each tool handler follows the pattern: parse input → call core function with repo → return JSON result
+  - `tests/mcp/server.test.ts` — test tool registration, input validation, error handling
+  - `tests/mcp/tools.test.ts` — test each tool against in-memory repository (same pattern as core tests)
+
+- [ ] **8.3 — Agent Skill** `§18.2`
+  - `skills/SKILL.md` — markdown file with YAML frontmatter following the AgentSkills open standard
+  - Metadata: `requires.bins: [clokk]`, install instructions (brew, npm), OS compatibility
+  - Body: quick reference of all commands with flags, rules for JSON output and `--yes` usage
+  - Compatible with Claude Code, OpenClaw, Cursor, and other AgentSkills-supporting agents
+
+- [ ] **8.4 — Claude Code hooks configuration** `§18.3`
+  - Document recommended hook configuration for automatic time tracking
+  - `SessionStart` hook: starts a timer with project derived from directory name, tagged `agent,claude-code`
+  - `Stop` hook: stops the running timer
+  - Hooks fail silently (`2>/dev/null || true`) to never block the agent
+  - Ship as a documented configuration snippet in README (not auto-installed)
+
+- [ ] **8.5 — Token-efficient `usage` command** `§18.4`
+  - `src/cli/commands/usage.ts` — outputs compact command reference in ~600 tokens
+  - Covers all commands, flags, output format, error structure, ID conventions, date/duration formats
+  - Designed for LLM consumption: no decorations, no padding, maximum information density
+  - Register in CLI router alongside existing `schema` and `commands` commands
+  - Update `clokk commands` list to include `usage`
+
+- [ ] **8.6 — MCP project configuration**
+  - `.mcp.json` at project root — configures clokk as an MCP server for Claude Code
+  - Documentation in README: how to add clokk MCP to any project
+  - Update CLAUDE.md with MCP layer conventions
 
 ---
 
@@ -389,11 +419,11 @@ Phase 4 ─ Integration
   4.3 Binary Build ───┘
               │
               ▼
-    ┌─────────┼─────────┐
-    │         │         │
-Phase 5    Phase 6   Phase 7
-CI/CD      Sync      TUI
-F.3→F.4    F.1.*     F.2.*
+    ┌─────────┼──────────┬──────────┐
+    │         │          │          │
+Phase 5    Phase 6    Phase 7    Phase 8
+CI/CD      Sync       TUI       Agent Integration
+F.3→F.4    F.1.*      F.2.*     8.2─8.6 (parallel after 8.1)
 (serial)  (parallel) (parallel)
 
 Phase 9 ─ Developer Tooling (independent, anytime)
@@ -413,6 +443,6 @@ Phase 9 ─ Developer Tooling (independent, anytime)
 | Phase 5 | 6 | CI/CD pipeline, release workflow, npm, Homebrew |
 | Phase 6 | 5 | Turso adapter, factory update, sync/auth commands, tests |
 | Phase 7 | 4 | OpenTUI scaffold, live timer, entry list, reports |
-| Phase 8 | 3 | Documentation updates, agent integration research & implementation |
+| Phase 8 | 7 | Agent integration: MCP server, skill, hooks, usage command |
 | Phase 9 | 3 | Biome linter + formatter setup, CI integration, codebase formatting |
-| **Phases 5–9** | **21** | |
+| **Phases 5–9** | **25** | |

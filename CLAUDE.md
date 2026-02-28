@@ -15,9 +15,9 @@ bun build ./src/cli/index.ts --compile --outfile dist/clokk  # Compile binary
 Three-layer architecture. Layers communicate through typed interfaces, never formatted strings or CLI flags.
 
 ```
-Interface Layer (CLI + TUI)  →  parses args / renders terminal UI
-Core Layer                   →  pure business logic, typed in/out, throws typed errors
-Data Layer                   →  Repository interface with SQLite backend
+Interface Layer (CLI + TUI + MCP)  →  parses args / renders UI / exposes MCP tools
+Core Layer                         →  pure business logic, typed in/out, throws typed errors
+Data Layer                         →  Repository interface with SQLite backend
 ```
 
 **Core layer**: every function takes `(repo: Repository, input?) → Promise<result>`. No awareness of CLI flags, output formatting, or database drivers. Repository is injected, never imported globally.
@@ -40,6 +40,14 @@ async run({ args }) {
 - **Hooks**: `src/tui/hooks/*.ts` — SolidJS hooks (`createSignal`, `createEffect`, `onCleanup`) for polling core functions. `useRepo()` provides Repository context.
 - **Bun plugin requirement**: SolidJS compiles JSX via Babel, not standard `jsx-runtime`. The plugin **must** be registered in a plain `.ts` file before any `.tsx` import. Never put JSX in `index.ts`.
 - **Binary compilation**: `src/cli/commands/ui.ts` uses an opaque dynamic import (`const path = "..."; import(path)`) so `bun build --compile` doesn't trace into TUI/SolidJS dependencies.
+
+**MCP layer** (`src/mcp/`): Model Context Protocol server exposing 15 tools over stdio transport. Launched via `clokk mcp serve`. Same architectural pattern as CLI — calls core functions with injected repo.
+
+- **Entry point**: `src/mcp/server.ts` — creates `McpServer`, registers all tools, connects `StdioServerTransport`.
+- **Tool files**: `src/mcp/tools/{timer,entries,projects,reports}.ts` — each file registers tools via `server.registerTool()` with Zod input schemas and tool annotations (`readOnlyHint`, `destructiveHint`, `idempotentHint`).
+- **Error wrapper**: `src/mcp/handle.ts` — `handleToolCall()` converts `ClokkError` to structured `isError: true` responses with `{ error, message, suggestions }`. Unknown errors re-throw.
+- **Project resolution**: `resolveProjectId(repo, nameOrId)` in `handle.ts` — used by tools where filters expect a resolved ID (`list_entries`, `generate_report`, `export_entries`). Not needed when core functions resolve internally (`log_entry`, `edit_entry`, `start_timer`).
+- **Binary compilation**: `src/cli/commands/mcp.ts` uses the same opaque dynamic import pattern as TUI to avoid bundling MCP SDK.
 
 ## Key Patterns
 
@@ -71,6 +79,14 @@ function createRepo(): Repository {
   migrate(db, { migrationsFolder: "./drizzle" });
   return new SqliteRepository(sqlite);
 }
+```
+
+**MCP tests**: in-memory SQLite + `InMemoryTransport.createLinkedPair()` for end-to-end tool invocations without stdio:
+```ts
+const [serverTransport, clientTransport] = InMemoryTransport.createLinkedPair();
+await server.connect(serverTransport);
+await client.connect(clientTransport);
+const result = await client.callTool({ name: "start_timer", arguments: { description: "Test" } });
 ```
 
 **CLI integration tests**: spawn real process with isolated temp dir, assert on JSON output:

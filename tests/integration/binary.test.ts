@@ -99,6 +99,6 @@ describe("Binary compilation", () => {
     expect(r.exitCode).toBe(0);
     const data = JSON.parse(r.stdout);
     expect(data.ok).toBe(true);
-    expect(data.data.length).toBe(19);
+    expect(data.data.length).toBe(20);
   });
 });

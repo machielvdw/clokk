@@ -19,6 +19,7 @@ const COMMANDS = [
   { name: "sync", description: "Trigger a manual sync with Turso" },
   { name: "auth", description: "Manage authentication (login, logout)" },
   { name: "ui", description: "Launch the interactive terminal UI" },
+  { name: "mcp serve", description: "Start the MCP server for AI agent integration" },
   { name: "schema", description: "Output complete CLI schema as JSON" },
   { name: "commands", description: "List all available commands" },
 ];

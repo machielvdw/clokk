@@ -28,7 +28,8 @@ Every design decision serves both audiences. If a feature is great for humans bu
 | Date Parsing | dayjs + custom relative parser | Lightweight, plugin-based, extensible with relative time parsing |
 | Testing | bun test | Built-in, Jest-compatible |
 | Distribution | `bun build --compile` | Single executable, no runtime dependency |
-| TUI (future) | OpenTUI | Bun-native, Zig core, cell-level diffing, shares core layer with CLI |
+| TUI | OpenTUI + SolidJS | Bun-native, Zig core, cell-level diffing, shares core layer with CLI |
+| MCP Server | `@modelcontextprotocol/sdk` | Exposes clokk as typed tools for AI agents via Model Context Protocol |
 
 ### 2.1 Key Dependencies
 
@@ -42,6 +43,8 @@ These are the primary runtime dependencies. Versions should be pinned in `packag
 | `drizzle-kit` | Dev dependency — migration generation and management |
 | `dayjs` | Date parsing and formatting — lightweight alternative to moment |
 | `nanoid` | ID generation — small, fast, URL-safe unique IDs |
+| `@modelcontextprotocol/sdk` | MCP server — typed tool definitions, stdio transport |
+| `zod` | Schema validation — input schemas for MCP tools (peer dependency of MCP SDK) |
 
 Dev dependencies: `typescript`, `@types/bun`, `drizzle-kit`.
 
@@ -52,26 +55,27 @@ Dev dependencies: `typescript`, `@types/bun`, `drizzle-kit`.
 clokk uses a three-layer architecture. The layers communicate through typed interfaces, never through formatted strings or CLI flags.
 
 ```
-┌─────────────────────────────────────────────┐
-│  Interface Layer (swappable)                │
-│  ┌───────┐  ┌───────┐  ┌────────────────┐  │
-│  │  CLI  │  │  TUI  │  │  API (future)  │  │
-│  └───┬───┘  └───┬───┘  └───────┬────────┘  │
-│      │          │               │           │
-│  Parses args, formats output, handles I/O   │
-├──────┴──────────┴───────────────┴───────────┤
-│  Core Layer (business logic)                │
-│                                             │
-│  Pure functions. No I/O formatting.         │
-│  Takes typed objects, returns typed objects. │
-│  Throws typed errors.                       │
-├─────────────────────────────────────────────┤
-│  Data Layer (storage)                       │
-│                                             │
-│  Repository interface with two backends:    │
-│  • SqliteRepository (bun:sqlite, local)     │
-│  • TursoRepository (libsql, sync)           │
-└─────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────┐
+│  Interface Layer (swappable)                         │
+│  ┌───────┐  ┌───────┐  ┌───────────┐  ┌──────────┐  │
+│  │  CLI  │  │  TUI  │  │ MCP Server│  │ Hooks/   │  │
+│  │       │  │       │  │ (agents)  │  │ Skills   │  │
+│  └───┬───┘  └───┬───┘  └─────┬─────┘  └────┬─────┘  │
+│      │          │             │              │        │
+│  Parses input, formats output, handles I/O           │
+├──────┴──────────┴─────────────┴──────────────┴───────┤
+│  Core Layer (business logic)                         │
+│                                                      │
+│  Pure functions. No I/O formatting.                  │
+│  Takes typed objects, returns typed objects.          │
+│  Throws typed errors.                                │
+├──────────────────────────────────────────────────────┤
+│  Data Layer (storage)                                │
+│                                                      │
+│  Repository interface with two backends:             │
+│  • SqliteRepository (bun:sqlite, local)              │
+│  • TursoRepository (libsql, sync)                    │
+└──────────────────────────────────────────────────────┘
 ```
 
 ### 3.1 Core Layer Rules
@@ -196,11 +200,19 @@ clokk/
 │   │   ├── format.ts          # Human-friendly formatters (durations, tables, colors)
 │   │   └── parse.ts           # Input parsing (dates, durations, tags)
 │   │
-│   └── tui/                   # TUI interface (future, OpenTUI)
-│       ├── index.ts           # Entry point (clokk ui)
-│       ├── app.tsx            # Root component, layout, context
-│       ├── components/        # Timer, entry list, project picker, reports
-│       └── hooks/             # use-timer, use-entries, use-repo
+│   ├── tui/                   # TUI interface (OpenTUI + SolidJS)
+│   │   ├── index.ts           # Entry point (clokk ui)
+│   │   ├── app.tsx            # Root component, layout, context
+│   │   ├── components/        # Timer, entry list, project picker, reports
+│   │   └── hooks/             # use-timer, use-entries, use-repo
+│   │
+│   └── mcp/                   # MCP server interface (agent integration)
+│       ├── server.ts          # McpServer setup, stdio transport, tool registration
+│       └── tools/             # Tool handlers grouped by domain
+│           ├── timer.ts       # start_timer, stop_timer, switch_timer, timer_status, resume_timer, cancel_timer
+│           ├── entries.ts     # log_entry, list_entries, edit_entry, delete_entry
+│           ├── projects.ts    # list_projects, create_project, edit_project
+│           └── reports.ts     # generate_report, export_entries
 │
 ├── drizzle/                   # Migration files (generated by drizzle-kit)
 ├── drizzle.config.ts          # Drizzle Kit configuration
@@ -815,13 +827,29 @@ clokk export --project acme --month --format csv --output ./acme-feb-2026.csv
 
 ### 9.9 Agent self-onboarding
 
-An AI agent encountering clokk for the first time would run:
+An AI agent encountering clokk for the first time has two paths:
+
+**Path A: MCP Server (preferred).** The agent's host (Claude Code, Cursor, etc.) has clokk configured as an MCP server. All tools are self-describing with typed schemas — the agent can immediately call `start_timer`, `stop_timer`, etc. without any discovery step. See §18.
+
+**Path B: CLI discovery.** The agent runs:
 
 ```
 clokk schema --json
 ```
 
 This single command returns the complete interface definition. The agent now knows every command, argument, type, default, and possible error code without reading documentation.
+
+### 9.10 Automatic time tracking via hooks
+
+An agent session automatically tracks time without any manual intervention:
+
+```
+# SessionStart hook fires → clokk start "Working on <project>"
+# ... agent works for 2 hours ...
+# Stop hook fires → clokk stop
+```
+
+The developer reviews their day with `clokk report --today` and sees accurate, automated entries for every agent session. See §18.3.
 
 ---
 
@@ -1157,7 +1185,399 @@ The matrix strategy uses platform-specific runners: `ubuntu-latest` for Linux ta
 
 ---
 
-## 18. Non-Goals
+## 18. Agent Integration
+
+clokk is designed for both humans and AI agents (§1). The CLI's structured JSON output (§5), self-describing schema (§6.3), and typed error codes (§5.4) form the foundation. This section specifies four complementary integration mechanisms that make clokk a first-class tool for AI coding agents.
+
+### Why agents need more than a good CLI
+
+Unlike well-known tools (`git`, `gh`, `docker`), **no LLM has training data about clokk**. When an agent encounters clokk for the first time via CLI, it must:
+
+1. Guess that `clokk schema` or `clokk --help` exists
+2. Parse the output format to learn available commands
+3. Construct shell commands by trial and error
+
+An MCP server eliminates this entirely — tools are self-describing with typed input schemas. A skill file provides natural-language guidance. Hooks enable fully automatic tracking with zero agent involvement.
+
+### 18.1 MCP Server
+
+The MCP (Model Context Protocol) server is the primary agent integration. It exposes clokk's core functions as typed tools that any MCP-compatible host (Claude Code, Cursor, Windsurf, etc.) can discover and invoke directly.
+
+#### Architecture
+
+The MCP server is another interface layer — architecturally identical to CLI and TUI. It follows the same pattern: receive input → call core function with injected repository → return structured result.
+
+```
+src/mcp/
+├── server.ts          # McpServer setup, stdio transport, tool registration
+└── tools/
+    ├── timer.ts       # start_timer, stop_timer, switch_timer, timer_status, resume_timer, cancel_timer
+    ├── entries.ts     # log_entry, list_entries, edit_entry, delete_entry
+    ├── projects.ts    # list_projects, create_project, edit_project
+    └── reports.ts     # generate_report, export_entries
+```
+
+#### Entry point
+
+The MCP server is launched via `clokk mcp serve`. It communicates over stdio using JSON-RPC (the MCP transport protocol). The server process must never write to stdout except through the MCP transport — all logging goes to stderr.
+
+```ts
+// src/mcp/server.ts
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+
+const server = new McpServer({
+  name: "clokk",
+  version: "1.0.0",
+});
+
+// Register all tools (see below)
+registerTimerTools(server, repo);
+registerEntryTools(server, repo);
+registerProjectTools(server, repo);
+registerReportTools(server, repo);
+
+const transport = new StdioServerTransport();
+await server.connect(transport);
+```
+
+#### Tool design principles
+
+1. **One tool per action.** `start_timer`, `stop_timer`, `list_entries` — not a generic `execute_command` tool. Focused tools produce better agent behavior than kitchen-sink endpoints.
+2. **Rich descriptions.** Each tool description explains **when** to use it, not just what it does. Include cross-references between tools (e.g., "Use list_projects to find available project IDs").
+3. **Zod input schemas.** Every parameter has a type, description, and optionality annotation. The schema is the documentation — agents read it to understand the API.
+4. **Annotations.** Mark tools with `readOnlyHint`, `destructiveHint`, and `idempotentHint` so hosts can make informed permission decisions.
+5. **Minimal output.** Return only the fields the agent needs. Don't echo the entire database row if the agent only needs the ID and status.
+
+#### Tool definitions
+
+**Timer tools:**
+
+| Tool | Description | Inputs | Annotations |
+|------|------------|--------|-------------|
+| `start_timer` | Start a new time tracking timer. Only one timer can run at a time. Use `switch_timer` to transition between tasks. | `description?`, `project?`, `tags?`, `billable?` | destructive: false, idempotent: false |
+| `stop_timer` | Stop the currently running timer. | `description?`, `tags?` | destructive: false, idempotent: false |
+| `switch_timer` | Atomically stop the current timer and start a new one. Preferred over separate stop+start calls. | `description`, `project?`, `tags?` | destructive: false, idempotent: false |
+| `timer_status` | Check if a timer is currently running. Returns the running entry with elapsed seconds, or running: false. | (none) | readOnly: true |
+| `resume_timer` | Start a new timer cloning the description, project, and tags from the most recently stopped entry. | `id?` | destructive: false, idempotent: false |
+| `cancel_timer` | Discard the running timer without saving. The entry is permanently deleted. | (none) | destructive: true, idempotent: true |
+
+**Entry tools:**
+
+| Tool | Description | Inputs | Annotations |
+|------|------------|--------|-------------|
+| `log_entry` | Log a completed time entry (not a running timer). Requires `from`; provide either `to` or `duration`. | `description?`, `project?`, `from`, `to?`, `duration?`, `tags?`, `billable?` | destructive: false |
+| `list_entries` | List time entries with optional filters. Returns entries and total count. | `project?`, `tags?`, `from?`, `to?`, `billable?`, `running?`, `limit?`, `offset?` | readOnly: true |
+| `edit_entry` | Modify an existing time entry. Only provided fields are updated. | `id`, `description?`, `project?`, `from?`, `to?`, `tags?`, `billable?` | destructive: false |
+| `delete_entry` | Permanently delete a time entry. | `id` | destructive: true, idempotent: true |
+
+**Project tools:**
+
+| Tool | Description | Inputs | Annotations |
+|------|------------|--------|-------------|
+| `create_project` | Create a new project. Names must be unique. | `name`, `client?`, `rate?`, `currency?`, `color?` | destructive: false |
+| `list_projects` | List all projects. Use `archived` flag to include archived projects. | `archived?` | readOnly: true |
+| `edit_project` | Update a project's properties. | `id`, `name?`, `client?`, `rate?`, `currency?`, `color?` | destructive: false |
+
+**Report tools:**
+
+| Tool | Description | Inputs | Annotations |
+|------|------------|--------|-------------|
+| `generate_report` | Generate a time report grouped by project, tag, day, or week. | `project?`, `tags?`, `from?`, `to?`, `group_by?` | readOnly: true |
+| `export_entries` | Export time entries as CSV or JSON. | `format?`, `project?`, `from?`, `to?` | readOnly: true |
+
+#### Tool handler pattern
+
+Each tool handler follows the same pattern as CLI commands — get the repository, call the core function, return the result:
+
+```ts
+server.tool(
+  "start_timer",
+  "Start a new time tracking timer. Only one timer can run at a time. "
+    + "Use switch_timer to transition between tasks without stopping.",
+  {
+    description: z.string().optional().describe("What you are working on"),
+    project: z.string().optional()
+      .describe("Project name or ID (prj_ prefix). Use list_projects to find available projects."),
+    tags: z.array(z.string()).optional().describe("Tags to categorize this entry"),
+    billable: z.boolean().optional().describe("Mark as billable (defaults to config setting)"),
+  },
+  async (input) => {
+    const result = await startTimer(repo, {
+      description: input.description,
+      project: input.project,
+      tags: input.tags,
+      billable: input.billable,
+    });
+    return {
+      content: [{ type: "text", text: JSON.stringify(result) }],
+    };
+  }
+);
+```
+
+#### Error handling
+
+Core functions throw typed `ClokkError` instances. The MCP tool handler catches these and returns them as structured error content:
+
+```ts
+async function handleToolCall<T>(fn: () => Promise<T>): Promise<CallToolResult> {
+  try {
+    const result = await fn();
+    return {
+      content: [{ type: "text", text: JSON.stringify(result) }],
+    };
+  } catch (err) {
+    if (err instanceof ClokkError) {
+      return {
+        content: [{
+          type: "text",
+          text: JSON.stringify({
+            error: err.code,
+            message: err.message,
+            suggestions: err.suggestions,
+          }),
+        }],
+        isError: true,
+      };
+    }
+    throw err;
+  }
+}
+```
+
+#### Configuration
+
+Users add clokk as an MCP server in their agent's configuration:
+
+**Claude Code (`.mcp.json` at project root, committed to git):**
+```json
+{
+  "mcpServers": {
+    "clokk": {
+      "command": "clokk",
+      "args": ["mcp", "serve"],
+      "env": {}
+    }
+  }
+}
+```
+
+**Claude Code (user-level, `~/.claude.json`):**
+```bash
+claude mcp add --transport stdio clokk -- clokk mcp serve
+```
+
+#### Why MCP for clokk specifically
+
+| Factor | Assessment |
+|--------|-----------|
+| LLM familiarity | **None** — no training data about clokk exists. MCP schemas teach the model the API. |
+| Tool count | **~15 tools** — well under the ~50 tool threshold where context flooding becomes a concern. |
+| Architecture fit | **Perfect** — MCP server is just another interface layer calling the same core functions. |
+| Stateful benefit | The MCP server process maintains the DB connection for the session, avoiding per-command startup cost. |
+| Host support | Claude Code, Cursor, Windsurf, Cline, and other MCP-compatible hosts. |
+
+### 18.2 Agent Skill
+
+An Agent Skill is a markdown file (`SKILL.md`) that teaches LLM-based coding agents how to use clokk via CLI. Skills follow the [AgentSkills open standard](https://skills.sh/) supported by Claude Code, OpenClaw, Cursor, and others.
+
+The skill is a lightweight alternative to MCP — it works with any agent that supports bash execution, without requiring MCP server configuration. It's especially useful for OpenClaw, which uses skills as its primary extension mechanism.
+
+#### SKILL.md
+
+```markdown
+---
+name: clokk
+description: Track time spent on coding tasks. Start/stop timers, log entries, manage projects, generate reports.
+version: 1.0.0
+metadata:
+  openclaw:
+    requires:
+      bins:
+        - clokk
+    emoji: "clock"
+    install:
+      - kind: brew
+        formula: clokk
+        bins:
+          - clokk
+      - kind: node
+        package: clokk
+        bins:
+          - clokk
+---
+
+# clokk — Time Tracking
+
+Track time spent on coding tasks directly from the terminal.
+
+## Quick Reference
+
+- `clokk start "description" --project name` — Start a timer
+- `clokk stop` — Stop the running timer
+- `clokk switch "new task" --project name` — Stop current, start new (preferred for task transitions)
+- `clokk status --json` — Check if a timer is running
+- `clokk list --today --json` — List today's entries
+- `clokk report --week --json` — Weekly time summary
+
+## Rules
+
+- Always pass `--json` for structured output (or pipe, which auto-selects JSON).
+- Only one timer can run at a time. Use `switch` for transitions, not `stop` + `start`.
+- Use `--yes` or `-y` to skip confirmation prompts.
+- Project can be a name ("acme") or ID ("prj_abc123").
+- For full command schema: `clokk schema --json`
+```
+
+#### Distribution
+
+The skill file ships in the clokk repository at `skills/SKILL.md` and can be installed via:
+
+```bash
+# Claude Code / compatible agents
+npx skills add clokk
+
+# OpenClaw
+# Auto-discovered if clokk binary is on PATH (via requires.bins)
+```
+
+### 18.3 Claude Code Hooks
+
+Hooks enable **automatic time tracking** — the agent codes, clokk tracks, with zero manual intervention. This is the highest-value integration for developers who use AI coding agents daily.
+
+#### How it works
+
+Claude Code fires lifecycle events at specific points. Shell scripts configured as hooks run in response to these events, calling clokk CLI commands.
+
+| Hook Event | Action | Behavior |
+|-----------|--------|----------|
+| `SessionStart` | `clokk start` | Start a timer when a Claude Code session begins. Description derived from project directory name. |
+| `Stop` | `clokk stop` | Stop the timer when the session ends (agent is done, user exits). |
+| `Notification` | (optional) | Could log context switches or long-running task boundaries. |
+
+#### Configuration
+
+Users add hooks to their Claude Code settings (`~/.claude/settings.json`):
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [{
+          "type": "command",
+          "command": "clokk start \"Claude Code session\" --project \"$(basename $PWD)\" --tags agent,claude-code --yes 2>/dev/null || true"
+        }]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [{
+          "type": "command",
+          "command": "clokk stop --yes 2>/dev/null || true"
+        }]
+      }
+    ]
+  }
+}
+```
+
+#### Design decisions
+
+- **Fail silently.** Hooks append `2>/dev/null || true` so clokk errors (e.g., timer already running from a previous session) never block the agent.
+- **Project from directory.** `$(basename $PWD)` uses the working directory name as the project. If the project doesn't exist in clokk, the timer starts without a project.
+- **Idempotent stop.** If no timer is running when the session ends, `clokk stop` fails silently rather than showing an error.
+- **Tags for attribution.** The `agent,claude-code` tags let developers filter agent-tracked time vs manually-tracked time in reports.
+
+### 18.4 Token-Efficient `usage` Command
+
+The existing `clokk schema` outputs the full citty command schema, which is verbose (~2000+ tokens). For agents using clokk via CLI (not MCP), a more compact discovery mechanism reduces context window consumption.
+
+`clokk usage` outputs a curated, token-efficient summary of all commands in under 1000 tokens — similar to the approach used by [Linearis](https://github.com/czottmann/linearis) which achieves 13x better token efficiency than equivalent MCP tool definitions.
+
+```
+clokk usage
+```
+
+Returns a compact reference designed for LLM consumption:
+
+```
+clokk - time tracker for humans and AI agents
+
+TIMER
+  start [desc] -p project -t tags --billable --at time  → start timer
+  stop --at time -d desc -t tags                        → stop timer
+  switch <desc> -p project -t tags                      → stop + start
+  status                                                → current timer
+  resume --id entry_id                                  → restart last
+  cancel -y                                             → discard timer
+
+ENTRIES
+  log [desc] -p project --from time --to time --duration dur -t tags  → add entry
+  edit <id> -d desc -p project --from time --to time -t tags          → modify entry
+  delete <id> -y                                                      → remove entry
+  list -p project -t tags --from --to --today --week --month -n limit → query entries
+
+PROJECTS
+  project create <name> -c client --rate n --currency code  → new project
+  project list --archived                                   → list projects
+  project edit <id> --name --client --rate --currency        → modify project
+  project archive <id>                                      → soft-delete
+  project delete <id> --force -y                            → hard-delete
+
+REPORTS
+  report -p project -t tags --from --to --week --month --group-by key  → time summary
+  export --format csv|json -o file -p project --from --to              → export data
+
+CONFIG
+  config show    → all settings
+  config get <k> → one setting
+  config set <k> <v> → update setting
+
+OUTPUT: --json forces JSON; piped output auto-selects JSON.
+ERRORS: { ok: false, error: { code, message, suggestions } }
+IDS: entries=ent_*, projects=prj_* (use name or ID interchangeably)
+DATES: ISO 8601, "2h ago", "yesterday 3pm", "last monday"
+DURATIONS: "1h30m", "90m", "1.5h", "1:30:00"
+```
+
+This format gives an agent complete knowledge of clokk's interface in a single call, consuming ~600 tokens vs ~2000+ for the full schema.
+
+### 18.5 What clokk already does well for agents
+
+These existing features (implemented in Phases 1–4) form the foundation that the integrations above build on:
+
+| Feature | Spec Section | Status |
+|---------|-------------|--------|
+| Consistent JSON envelope on all commands | §5.2 | Implemented |
+| Structured errors with codes, suggestions, context | §5.4, §10 | Implemented |
+| `--json` / `--human` flags + auto-detection | §5.1 | Implemented |
+| `--yes` flag for prompt bypass | §6.1, §6.2 | Implemented |
+| `clokk schema` — machine-readable command tree | §6.3 | Implemented |
+| `clokk commands` — command listing | §6.3 | Implemented |
+| Deterministic exit codes (0/1/2) | §10 | Implemented |
+| Noun-verb command hierarchy | §6.1 | Implemented |
+| ISO 8601 timestamps, integer seconds | §3.1 | Implemented |
+| Non-interactive when piped | §6.1 | Implemented |
+
+### 18.6 Anti-patterns avoided
+
+clokk's design deliberately avoids common patterns that make CLI tools hostile to AI agents:
+
+- **No interactive prompts without bypass.** Every confirmation has `--yes` and auto-skips when piped.
+- **No human-only output in data fields.** JSON data always uses ISO 8601 and integer seconds, never "2 hours ago" or "1h 30m".
+- **No mixed stdout/stderr.** JSON goes to stdout, errors and diagnostics to stderr.
+- **No pagers.** Output is never piped through `less` or `more`.
+- **No progress bars or spinners in stdout.** Human decorations only appear in TTY human mode.
+- **No browser-based auth.** Token-based authentication via `clokk auth login --url --token`.
+- **Consistent field naming.** Same field names across all commands (`project_id`, `start_time`, `duration_seconds`).
+
+---
+
+## 19. Non-Goals
 
 Things clokk explicitly does not try to do:
 
