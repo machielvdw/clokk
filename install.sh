@@ -113,3 +113,4 @@ add_to_path
 
 printf "\n"
 success "clokk is ready! Run \"clokk --help\" to get started."
+info "Using an AI agent? Run \"clokk usage\" for integration docs."
