@@ -316,7 +316,7 @@
   - Decided on four-pronged approach: MCP server + Agent Skill + Claude Code hooks + `usage` command
   - Updated tech_spec.md §18 with full design and implementation guidance
 
-- [ ] **8.2 — MCP server implementation** `§18.1`
+- [x] **8.2 — MCP server implementation** `§18.1`
   - `bun add @modelcontextprotocol/sdk zod`
   - `src/mcp/server.ts` — `McpServer` setup with stdio transport, repository initialization
   - `src/mcp/tools/timer.ts` — `start_timer`, `stop_timer`, `switch_timer`, `timer_status`, `resume_timer`, `cancel_timer`
@@ -329,7 +329,7 @@
   - `tests/mcp/server.test.ts` — test tool registration, input validation, error handling
   - `tests/mcp/tools.test.ts` — test each tool against in-memory repository (same pattern as core tests)
 
-- [ ] **8.3 — Agent Skill** `§18.2`
+- [x] **8.3 — Agent Skill** `§18.2`
   - `skills/SKILL.md` — markdown file with YAML frontmatter following the AgentSkills open standard
   - Metadata: `requires.bins: [clokk]`, install instructions (brew, npm), OS compatibility
   - Body: quick reference of all commands with flags, rules for JSON output and `--yes` usage
