@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "clokk": {
+      "command": "bun",
+      "args": ["src/cli/index.ts", "mcp", "serve"]
+    }
+  }
+}

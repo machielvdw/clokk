@@ -1,8 +1,15 @@
 # clokk
 
-A local-first CLI time tracker built for humans and AI agents.
+A local-first CLI time tracker designed for AI agents and humans alike.
 
-clokk is a fast, terminal-native time tracker that works equally well when you type commands yourself or when an AI agent (like Claude Code) drives it programmatically. Every command outputs structured JSON when piped, so scripts and agents get predictable, machine-readable data without any extra flags.
+clokk is a terminal-native time tracker built from the ground up to be driven by AI coding agents. It works equally well when you type commands or when an agent like Claude Code, Cursor, or OpenClaw drives it programmatically. Every command auto-detects its context — structured JSON when piped, human-friendly output in a terminal — so agents get predictable, machine-readable data without any extra flags.
+
+**Four ways to integrate with AI agents:**
+
+- **MCP Server** — 15 typed tools over Model Context Protocol (Claude Code, Cursor, OpenClaw)
+- **CLI** — structured JSON output, `--json` flag, `--yes` for non-interactive use
+- **Claude Code Hooks** — automatic time tracking on session start/stop
+- **Agent Skill** — [AgentSkills](https://skills.sh/) standard for cross-agent discovery
 
 ## Install
 
@@ -68,6 +75,106 @@ clokk log "Client call" --from "today 2pm" --to "today 3:30pm" --project acme
 clokk report --today
 ```
 
+## AI agent integration
+
+clokk provides first-class support for AI coding agents. No LLM has training data about clokk, so it ships with multiple self-describing interfaces that agents can discover at runtime.
+
+### MCP Server (recommended)
+
+The MCP server exposes 15 typed tools that MCP-compatible hosts invoke directly — no CLI parsing needed.
+
+Add a `.mcp.json` to your project root:
+
+```json
+{
+  "mcpServers": {
+    "clokk": {
+      "command": "clokk",
+      "args": ["mcp", "serve"]
+    }
+  }
+}
+```
+
+Tools: `start_timer`, `stop_timer`, `switch_timer`, `timer_status`, `resume_timer`, `cancel_timer`, `log_entry`, `list_entries`, `edit_entry`, `delete_entry`, `create_project`, `list_projects`, `edit_project`, `generate_report`, `export_entries`
+
+Each tool has typed input schemas, descriptions, and annotations (`readOnlyHint`, `destructiveHint`) so the agent knows what's safe to call autonomously.
+
+### CLI integration
+
+Every command outputs structured JSON when piped or when `--json` is passed. Agents can use clokk's CLI directly:
+
+```bash
+# Start tracking (agent gets back entry ID, timestamps, etc.)
+clokk start "Feature: auth flow" --project acme --tags backend --json
+
+# Check status
+clokk status --json
+
+# Switch tasks atomically
+clokk switch "Code review" --project acme --json
+
+# Query entries
+clokk list --today --json
+```
+
+Self-describing commands for runtime discovery:
+
+| Command | Description |
+|---|---|
+| `clokk usage` | Compact command reference (~600 tokens) — ideal for LLM context |
+| `clokk schema` | Full CLI schema as JSON — every command, flag, and type |
+| `clokk commands --json` | List all commands with descriptions |
+
+### Automatic time tracking (Claude Code hooks)
+
+Add to `~/.claude/settings.json` to track time automatically during coding sessions:
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [{
+          "type": "command",
+          "command": "clokk start \"Claude Code session\" --project \"$(basename $PWD)\" --tags agent,claude-code --yes 2>/dev/null || true"
+        }]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [{
+          "type": "command",
+          "command": "clokk stop --yes 2>/dev/null || true"
+        }]
+      }
+    ]
+  }
+}
+```
+
+- **Project from directory**: uses `$(basename $PWD)` as the project name
+- **Fail silently**: hooks never block the agent (errors suppressed with `2>/dev/null || true`)
+- **Tags for filtering**: `clokk report --tags agent --week --json` to see agent-tracked time
+
+### Agent Skill
+
+clokk ships a [SKILL.md](skills/SKILL.md) following the [AgentSkills](https://skills.sh/) open standard. Compatible with Claude Code, OpenClaw, Cursor, and other agents that support the standard.
+
+### Design for agents
+
+clokk avoids common patterns that make CLI tools hostile to AI agents:
+
+- **No interactive prompts without bypass** — every confirmation has `--yes` and auto-skips when piped
+- **No human-only data fields** — JSON always uses ISO 8601 timestamps and integer seconds, never relative formats
+- **No mixed stdout/stderr** — JSON to stdout, diagnostics to stderr
+- **No pagers or spinners in stdout** — decorations only in TTY human mode
+- **Consistent field naming** — same names across all commands (`project_id`, `start_time`, `duration_seconds`)
+- **Structured errors** — machine-readable `code`, `message`, and `suggestions` (executable commands)
+- **Deterministic exit codes** — `0` success, `1` user error, `2` system error
+
 ## Commands
 
 ### Timer lifecycle
@@ -128,13 +235,6 @@ clokk report --today
 | Command | Description |
 |---|---|
 | `clokk ui` | Launch the interactive terminal UI |
-
-### Agent discoverability
-
-| Command | Description |
-|---|---|
-| `clokk schema` | Output the full CLI interface as JSON |
-| `clokk commands` | List all commands with descriptions |
 
 ## Output modes
 
@@ -231,4 +331,5 @@ bun src/cli/index.ts start    # Run without compiling
 - **Database:** SQLite via `bun:sqlite` — zero-dependency, instant reads/writes
 - **ORM:** [Drizzle](https://orm.drizzle.team) — type-safe schema, SQL-like query builder
 - **Output:** [consola](https://github.com/unjs/consola) — pluggable reporters, environment auto-detection
+- **MCP:** [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) — typed tool definitions with Zod schemas
 - **TUI:** [OpenTUI](https://github.com/anomalyco/opentui) + [SolidJS](https://www.solidjs.com) — Zig-native terminal rendering with fine-grained reactivity

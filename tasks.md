@@ -335,21 +335,21 @@
   - Body: quick reference of all commands with flags, rules for JSON output and `--yes` usage
   - Compatible with Claude Code, OpenClaw, Cursor, and other AgentSkills-supporting agents
 
-- [ ] **8.4 — Claude Code hooks configuration** `§18.3`
+- [x] **8.4 — Claude Code hooks configuration** `§18.3`
   - Document recommended hook configuration for automatic time tracking
   - `SessionStart` hook: starts a timer with project derived from directory name, tagged `agent,claude-code`
   - `Stop` hook: stops the running timer
   - Hooks fail silently (`2>/dev/null || true`) to never block the agent
   - Ship as a documented configuration snippet in README (not auto-installed)
 
-- [ ] **8.5 — Token-efficient `usage` command** `§18.4`
+- [x] **8.5 — Token-efficient `usage` command** `§18.4`
   - `src/cli/commands/usage.ts` — outputs compact command reference in ~600 tokens
   - Covers all commands, flags, output format, error structure, ID conventions, date/duration formats
   - Designed for LLM consumption: no decorations, no padding, maximum information density
   - Register in CLI router alongside existing `schema` and `commands` commands
   - Update `clokk commands` list to include `usage`
 
-- [ ] **8.6 — MCP project configuration**
+- [x] **8.6 — MCP project configuration**
   - `.mcp.json` at project root — configures clokk as an MCP server for Claude Code
   - Documentation in README: how to add clokk MCP to any project
   - Update CLAUDE.md with MCP layer conventions

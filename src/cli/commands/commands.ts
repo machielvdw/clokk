@@ -20,6 +20,7 @@ const COMMANDS = [
   { name: "auth", description: "Manage authentication (login, logout)" },
   { name: "ui", description: "Launch the interactive terminal UI" },
   { name: "mcp serve", description: "Start the MCP server for AI agent integration" },
+  { name: "usage", description: "Show compact command reference for AI agents" },
   { name: "schema", description: "Output complete CLI schema as JSON" },
   { name: "commands", description: "List all available commands" },
 ];
