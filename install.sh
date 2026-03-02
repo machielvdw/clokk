@@ -42,17 +42,23 @@ case "$ARCH" in
 esac
 
 ARTIFACT="clokk-${os}-${arch}"
+BASE_URL="https://github.com/machielvdw/clokk/releases/latest/download"
+
+# Native library extension
+LIB_EXT="so"
+[ "$os" = "darwin" ] && LIB_EXT="dylib"
+LIB_ARTIFACT="libopentui-${os}-${arch}.${LIB_EXT}"
 
 # ── Install ──────────────────────────────────────────────────────────
 
 INSTALL_DIR="${CLOKK_INSTALL:-$HOME/.clokk/bin}"
+LIB_DIR="$HOME/.clokk/lib"
 BINARY="$INSTALL_DIR/clokk"
-URL="https://github.com/machielvdw/clokk/releases/latest/download/$ARTIFACT"
 TMPFILE="${TMPDIR:-/tmp}/clokk-download-$$"
 
 info "Downloading clokk for ${os}-${arch}..."
 
-if ! curl -fsSL "$URL" -o "$TMPFILE" 2>/dev/null; then
+if ! curl -fsSL "$BASE_URL/$ARTIFACT" -o "$TMPFILE" 2>/dev/null; then
   rm -f "$TMPFILE"
   error "Download failed. Check https://github.com/machielvdw/clokk/releases for available binaries."
 fi
@@ -62,6 +68,16 @@ mv "$TMPFILE" "$BINARY"
 chmod 755 "$BINARY"
 
 success "Installed clokk to $BINARY"
+
+# Download native library for TUI support
+info "Downloading TUI native library..."
+mkdir -p "$LIB_DIR"
+if curl -fsSL "$BASE_URL/$LIB_ARTIFACT" -o "$LIB_DIR/libopentui.${LIB_EXT}" 2>/dev/null; then
+  chmod 755 "$LIB_DIR/libopentui.${LIB_EXT}"
+  success "Installed TUI library to $LIB_DIR"
+else
+  info "TUI library not available (clokk ui will not work, all other commands work fine)."
+fi
 
 # ── Add to PATH ──────────────────────────────────────────────────────
 

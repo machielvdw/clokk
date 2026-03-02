@@ -18,7 +18,8 @@
   },
   "scripts": {
     "test": "bun test",
-    "build": "bun build ./src/cli/index.ts --compile --outfile dist/clokk",
+    "prebuild": "bun scripts/build-tui.ts",
+    "build": "bun run prebuild && bun build ./src/cli/index.ts --compile --outfile dist/clokk",
     "type-check": "tsc --noEmit",
     "lint": "bunx biome check src tests",
     "lint:fix": "bunx biome check --write src tests",
@@ -39,8 +40,12 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/preset-typescript": "^7.28.5",
     "@biomejs/biome": "2.4.4",
     "@types/bun": "1.2.4",
+    "babel-plugin-module-resolver": "^5.0.2",
+    "babel-preset-solid": "^1.9.10",
     "drizzle-kit": "0.31.1",
     "typescript": "5.7.3"
   }
