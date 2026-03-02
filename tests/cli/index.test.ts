@@ -36,7 +36,7 @@ function runClokk(args: string[]): {
 describe("clokk --version", () => {
   it("prints the version number", () => {
     const result = runClokk(["--version"]);
-    expect(result.stdout.trim()).toBe("0.1.0");
+    expect(result.stdout.trim()).toBe("0.2.0");
     expect(result.exitCode).toBe(0);
   });
 });
