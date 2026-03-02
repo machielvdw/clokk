@@ -5,7 +5,7 @@ import { getConfigDir } from "@/config.ts";
 import { ClokkError, DatabaseError } from "@/core/errors.ts";
 import { checkForUpdate } from "@/core/version.ts";
 
-const VERSION = "0.1.0";
+const VERSION = "0.2.0";
 
 export const main = defineCommand({
   meta: {

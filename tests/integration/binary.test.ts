@@ -62,7 +62,7 @@ describe("Binary compilation", () => {
   it("--version outputs version number", () => {
     const r = runBinary(["--version"]);
     expect(r.exitCode).toBe(0);
-    expect(r.stdout.trim()).toBe("0.1.0");
+    expect(r.stdout.trim()).toBe("0.2.0");
   });
 
   it("--help shows available commands", () => {
