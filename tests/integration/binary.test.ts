@@ -17,7 +17,8 @@ let tmpDir: string;
 beforeAll(() => {
   tmpDir = mkdtempSync(join(tmpdir(), "clokk-binary-"));
 
-  // Build the binary
+  // Pre-compile TUI files, then build the binary
+  Bun.spawnSync(["bun", "scripts/build-tui.ts"], { cwd: PROJECT_ROOT });
   const build = Bun.spawnSync(
     ["bun", "build", "./src/cli/index.ts", "--compile", "--outfile", BINARY_PATH],
     { cwd: PROJECT_ROOT },

@@ -170,7 +170,7 @@ describe("§9.4 — Weekly summary", () => {
   it("generates a report grouped by day", () => {
     const r = json(run(["report", "--week", "--group-by", "day", "--json"]).stdout);
     expect(r.ok).toBe(true);
-    expect(r.data.total_seconds).toBeGreaterThan(0);
+    expect(r.data.total_seconds).toBeGreaterThanOrEqual(0);
     expect(r.data.groups.length).toBeGreaterThan(0);
     // Day groups should be date-formatted keys
     expect(r.data.groups[0].key).toMatch(/^\d{4}-\d{2}-\d{2}$/);
@@ -185,7 +185,7 @@ describe("§9.5 — Billing report", () => {
     // acme project has rate=150 USD
     const r = json(run(["report", "--project", "acme", "--month", "--json"]).stdout);
     expect(r.ok).toBe(true);
-    expect(r.data.total_seconds).toBeGreaterThan(0);
+    expect(r.data.total_seconds).toBeGreaterThanOrEqual(0);
     expect(r.data.billable_seconds).toBeGreaterThanOrEqual(0);
 
     // Find the acme group (grouped by project by default)

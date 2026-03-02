@@ -34,22 +34,37 @@ jobs:
             runner: macos-latest
             artifact: clokk-darwin-x64
             smoke: true
+            opentui_pkg: core-darwin-x64
+            opentui_lib: libopentui.dylib
+            lib_artifact: libopentui-darwin-x64.dylib
           - target: bun-darwin-arm64
             runner: macos-14
             artifact: clokk-darwin-arm64
             smoke: true
+            opentui_pkg: core-darwin-arm64
+            opentui_lib: libopentui.dylib
+            lib_artifact: libopentui-darwin-arm64.dylib
           - target: bun-linux-x64
             runner: ubuntu-latest
             artifact: clokk-linux-x64
             smoke: true
+            opentui_pkg: core-linux-x64
+            opentui_lib: libopentui.so
+            lib_artifact: libopentui-linux-x64.so
           - target: bun-linux-arm64
             runner: ubuntu-latest
             artifact: clokk-linux-arm64
             smoke: false
+            opentui_pkg: core-linux-arm64
+            opentui_lib: libopentui.so
+            lib_artifact: libopentui-linux-arm64.so
           - target: bun-windows-x64
             runner: windows-latest
             artifact: clokk-windows-x64.exe
             smoke: true
+            opentui_pkg: core-win32-x64
+            opentui_lib: opentui.dll
+            lib_artifact: libopentui-windows-x64.dll
 
     steps:
       - uses: actions/checkout@v4
@@ -58,8 +73,15 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Pre-compile TUI
+        run: bun scripts/build-tui.ts
+
       - name: Build binary
         run: bun build ./src/cli/index.ts --compile --target=${{ matrix.target }} --outfile dist/${{ matrix.artifact }}
+
+      - name: Copy native library
+        run: cp node_modules/@opentui/${{ matrix.opentui_pkg }}/${{ matrix.opentui_lib }} dist/${{ matrix.lib_artifact }}
+        shell: bash
 
       - name: Smoke test
         if: matrix.smoke
@@ -70,6 +92,11 @@ jobs:
         with:
           name: ${{ matrix.artifact }}
           path: dist/${{ matrix.artifact }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.lib_artifact }}
+          path: dist/${{ matrix.lib_artifact }}
 
   # ── Create GitHub Release with all binaries + checksums ──────────
   release:
